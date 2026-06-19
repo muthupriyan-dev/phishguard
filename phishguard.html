@@ -1,0 +1,1069 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>PhishGuard AI — Educational Phishing URL Analyzer</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
+
+:root{
+  --bg-0:#f4f6fb;
+  --bg-1:#ffffff;
+  --bg-soft:#eef1f8;
+  --card:#ffffff;
+  --border:#e2e6f0;
+  --shadow:0 1px 2px rgba(20,30,60,0.04), 0 8px 24px rgba(20,30,60,0.06);
+  --accent:#3056d3;
+  --accent-dim:#eaf0fe;
+  --accent-ink:#1d3aa8;
+  --text-0:#1b2233;
+  --text-1:#5b6478;
+  --text-2:#8a93a6;
+  --safe:#15803d;
+  --low:#65a30d;
+  --medium:#d97706;
+  --high:#ea580c;
+  --critical:#dc2626;
+  --radius-lg:16px;
+  --radius-md:12px;
+  --radius-sm:8px;
+  --font-mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
+  --font-sans:'Inter', system-ui, -apple-system, sans-serif;
+}
+*{ box-sizing:border-box; }
+html{ scroll-behavior:smooth; }
+body{ margin:0; background:var(--bg-0); color:var(--text-0); font-family:var(--font-sans); line-height:1.55; overflow-x:hidden; }
+.hidden{ display:none !important; }
+.sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); background:var(--accent-dim); padding:1px 6px; border-radius:5px; }
+
+/* Topbar */
+.topbar{ position:sticky; top:0; z-index:20; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
+.topbar-inner{ max-width:1180px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+.brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:1.05rem; }
+.brand-glyph{ font-size:1.2rem; }
+.accent{ color:var(--accent); }
+.topbar-status{ display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-1); }
+.status-dot{ width:8px; height:8px; border-radius:50%; background:var(--safe); box-shadow:0 0 0 3px rgba(21,128,61,0.15); }
+
+/* Hero */
+.hero{ padding:56px 24px 32px; }
+.hero-inner{ max-width:780px; margin:0 auto; }
+.eyebrow{ font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--accent); margin:0 0 14px; }
+.hero-title{ font-size:clamp(1.9rem, 4.4vw, 2.7rem); font-weight:800; letter-spacing:-0.02em; line-height:1.18; margin:0 0 16px; }
+.hero-sub{ font-size:1.05rem; color:var(--text-1); max-width:620px; margin:0 0 24px; }
+
+.disclaimer-strip{ display:flex; flex-direction:column; gap:6px; background:#fff8eb; border:1px solid #f3deac; border-radius:var(--radius-md); padding:14px 16px; margin-bottom:28px; }
+.disclaimer-tag{ display:inline-block; font-size:0.72rem; font-weight:700; letter-spacing:0.04em; color:#92660c; background:#fcecc6; border-radius:6px; padding:2px 8px; width:fit-content; }
+.disclaimer-strip p{ margin:0; font-size:0.92rem; color:#6b4e15; }
+
+/* Terminal */
+.terminal{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; }
+.terminal-bar{ display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg-soft); }
+.terminal-title{ font-size:0.85rem; font-weight:600; color:var(--text-1); }
+.terminal-title::before{ content:'● '; color:var(--safe); font-size:0.7rem; }
+.terminal-body{ padding:16px; display:flex; flex-direction:column; gap:6px; }
+.terminal-body .line{ margin:0; font-family:var(--font-mono); font-size:0.88rem; color:var(--text-0); }
+
+/* Panels */
+.panel{ max-width:1180px; margin:0 auto; padding:28px 24px; }
+.panel-head{ margin-bottom:18px; }
+.panel-head h2{ font-size:1.3rem; font-weight:700; display:flex; align-items:center; gap:10px; margin:0 0 6px; }
+.idx{ font-family:var(--font-mono); font-size:0.78rem; font-weight:700; color:var(--accent); background:var(--accent-dim); border-radius:6px; padding:2px 8px; }
+.panel-desc{ color:var(--text-1); margin:0; font-size:0.95rem; }
+
+.glass, .card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); }
+.card-label{ font-size:0.78rem; font-weight:700; letter-spacing:0.02em; color:var(--text-1); display:flex; align-items:center; gap:8px; margin:0 0 14px; }
+.pulse-dot{ width:7px; height:7px; border-radius:50%; background:var(--accent); flex:none; box-shadow:0 0 0 3px var(--accent-dim); }
+
+/* Input card */
+.analyze-panel{ padding-top:8px; }
+.input-card{ padding:20px; }
+.input-row{ display:flex; align-items:center; gap:10px; background:var(--bg-soft); border:1px solid var(--border); border-radius:var(--radius-md); padding:12px 14px; }
+.input-icon{ font-size:1rem; opacity:0.7; }
+#urlInput{ flex:1; border:none; outline:none; background:transparent; font-family:var(--font-mono); font-size:0.95rem; color:var(--text-0); }
+#urlInput::placeholder{ color:var(--text-2); }
+.input-error{ color:var(--critical); font-size:0.88rem; margin:10px 2px 0; }
+
+.button-row{ display:flex; gap:10px; margin-top:14px; flex-wrap:wrap; }
+.btn{ font-family:var(--font-sans); font-size:0.92rem; font-weight:600; cursor:pointer; border-radius:var(--radius-sm); padding:11px 18px; border:1px solid transparent; display:inline-flex; align-items:center; gap:7px; transition:transform .12s ease, background .15s ease; }
+.btn:active{ transform:translateY(1px); }
+.btn-primary{ background:var(--accent); color:#fff; }
+.btn-primary:hover{ background:var(--accent-ink); }
+.btn-icon{ font-size:0.75rem; }
+.btn-ghost{ background:var(--bg-soft); color:var(--text-0); border-color:var(--border); }
+.btn-ghost:hover{ background:#e7eaf3; }
+
+.sample-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; }
+.sample-label{ font-size:0.85rem; color:var(--text-2); }
+.chip{ font-family:var(--font-mono); font-size:0.82rem; color:var(--text-1); background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; padding:6px 12px; cursor:pointer; transition:background .15s ease, color .15s ease; }
+.chip:hover{ background:var(--accent-dim); color:var(--accent-ink); border-color:var(--accent-dim); }
+
+/* Scan loading */
+.scan-loading{ max-width:1180px; margin:0 auto; padding:0 24px 12px; }
+.scan-bar{ height:6px; border-radius:999px; background:var(--bg-soft); overflow:hidden; margin-bottom:14px; }
+.scan-bar-fill{ height:100%; width:0; background:var(--accent); border-radius:999px; animation:scanProgress 1.7s ease forwards; }
+@keyframes scanProgress{ from{width:0} to{width:100%} }
+.scan-logs{ display:flex; flex-direction:column; gap:6px; }
+.log-line{ margin:0; font-size:0.88rem; color:var(--text-1); opacity:0; transform:translateY(4px); animation:logIn .35s ease forwards; }
+.log-line.ok{ color:var(--safe); font-weight:600; }
+@keyframes logIn{ to{opacity:1; transform:translateY(0);} }
+
+/* ==========================================
+   FAVICON COMPARISON PANEL  (NEW)
+   ========================================== */
+.favicon-panel{ padding:20px; }
+.favicon-compare{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+  margin-top:12px;
+}
+.favicon-box{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  padding:20px 16px;
+  border-radius:var(--radius-md);
+  border:1.5px solid var(--border);
+  background:var(--bg-soft);
+  text-align:center;
+  position:relative;
+}
+.favicon-box.real{ border-color:#bbf7d0; background:#f0fdf4; }
+.favicon-box.suspect{ border-color:#fecaca; background:#fff5f5; }
+.favicon-img-wrap{
+  width:56px; height:56px; border-radius:12px;
+  background:#fff; border:1px solid var(--border);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 2px 8px rgba(20,30,60,0.08);
+  overflow:hidden;
+  position:relative;
+}
+.favicon-img-wrap img{ width:32px; height:32px; object-fit:contain; }
+.favicon-img-wrap .fav-placeholder{ font-size:1.4rem; }
+.favicon-domain{ font-family:var(--font-mono); font-size:0.82rem; color:var(--text-1); word-break:break-all; }
+.favicon-badge{
+  font-size:0.7rem; font-weight:700; letter-spacing:0.04em;
+  border-radius:999px; padding:3px 10px;
+}
+.favicon-badge.legit{ background:#dcfce7; color:var(--safe); }
+.favicon-badge.suspect-badge{ background:#fee2e2; color:var(--critical); }
+.favicon-vs{
+  display:flex; align-items:center; justify-content:center;
+  font-weight:700; font-size:0.9rem; color:var(--text-2);
+  align-self:center;
+}
+.favicon-verdict{
+  margin-top:14px; padding:12px 14px; border-radius:var(--radius-md);
+  font-size:0.9rem;
+}
+.favicon-verdict.match{ background:#f0fdf4; border:1px solid #bbf7d0; color:var(--safe); }
+.favicon-verdict.mismatch{ background:#fff5f5; border:1px solid #fecaca; color:var(--critical); }
+.favicon-verdict.unknown{ background:var(--bg-soft); border:1px solid var(--border); color:var(--text-1); }
+.favicon-status-icon{ font-size:1.1rem; margin-right:6px; }
+
+/* ==========================================
+   CONFIDENCE SCORE  (NEW)
+   ========================================== */
+.score-confidence-block{
+  display:flex;
+  gap:0;
+  align-items:stretch;
+  background:var(--bg-soft);
+  border-radius:var(--radius-md);
+  overflow:hidden;
+  border:1px solid var(--border);
+  margin-top:16px;
+}
+.score-half{
+  flex:1;
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  justify-content:center;
+  padding:18px 16px;
+  gap:4px;
+}
+.score-half + .score-half{
+  border-left:1px solid var(--border);
+}
+.score-half-label{
+  font-size:0.72rem;
+  font-weight:700;
+  letter-spacing:0.05em;
+  text-transform:uppercase;
+  color:var(--text-2);
+}
+.score-half-number{
+  font-family:var(--font-mono);
+  font-size:2.2rem;
+  font-weight:700;
+  line-height:1;
+  color:var(--text-0);
+}
+.score-half-sub{
+  font-size:0.78rem;
+  color:var(--text-2);
+}
+.confidence-bar-wrap{
+  width:100%;
+  margin-top:6px;
+}
+.confidence-bar-track{
+  height:5px;
+  border-radius:999px;
+  background:var(--border);
+  overflow:hidden;
+}
+.confidence-bar-fill{
+  height:100%;
+  border-radius:999px;
+  background:var(--accent);
+  transition:width .6s ease;
+}
+
+/* Risk dashboard */
+.risk-dashboard{ padding:24px; }
+.risk-score-block{ display:flex; align-items:center; gap:24px; flex-wrap:wrap; }
+.risk-gauge{ position:relative; width:120px; height:120px; flex:none; }
+.gauge-svg{ width:100%; height:100%; transform:rotate(-90deg); }
+.gauge-track{ fill:none; stroke:var(--bg-soft); stroke-width:10; }
+.gauge-fill{ fill:none; stroke:var(--safe); stroke-width:10; stroke-linecap:round; transition:stroke-dashoffset .6s ease, stroke .3s ease; }
+.gauge-center{ position:absolute; inset:0; display:flex; flex-direction:column; align-items:center; justify-content:center; }
+.gauge-number{ font-family:var(--font-mono); font-size:1.7rem; font-weight:700; color:var(--text-0); }
+.gauge-max{ font-size:0.78rem; color:var(--text-2); }
+.risk-level-block{ flex:1; min-width:220px; }
+.risk-level-tag{ display:inline-block; font-size:0.78rem; font-weight:700; letter-spacing:0.03em; border:1.5px solid var(--text-2); border-radius:999px; padding:4px 12px; margin-bottom:10px; }
+.risk-url-echo{ font-family:var(--font-mono); font-size:0.88rem; color:var(--text-1); margin:0 0 6px; word-break:break-all; }
+.risk-summary{ font-size:0.95rem; color:var(--text-0); margin:0; }
+.progress-row{ margin-top:22px; }
+.progress-track{ height:8px; border-radius:999px; background:var(--bg-soft); overflow:hidden; }
+.progress-fill{ height:100%; width:0; background:var(--safe); border-radius:999px; transition:width .6s ease, background .3s ease; }
+.progress-labels{ display:flex; justify-content:space-between; font-size:0.76rem; color:var(--text-2); margin-top:6px; }
+
+/* Checks grid */
+.checks-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:14px; }
+.check-card{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-md); padding:16px; box-shadow:var(--shadow); transition:transform .15s ease, box-shadow .15s ease; }
+.check-card:hover{ transform:translateY(-2px); box-shadow:0 4px 16px rgba(20,30,60,0.09); }
+.check-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.check-name{ font-weight:600; font-size:0.95rem; color:var(--text-0); }
+/* ✅ BUG FIX: Use .pass / .warn / .fail — matches JS className = 'check-status ' + status */
+.check-status{ font-size:0.72rem; font-weight:700; letter-spacing:0.02em; padding:2px 9px; border-radius:999px; }
+.check-status.pass{ background:#e8f5ec; color:var(--safe); }
+.check-status.warn{ background:#fcf0dc; color:var(--medium); }
+.check-status.fail{ background:#fbe3e2; color:var(--critical); }
+.check-explanation{ font-size:0.88rem; color:var(--text-1); margin:0 0 10px; }
+.check-bar-track{ height:5px; border-radius:999px; background:var(--bg-soft); overflow:hidden; }
+.check-bar-fill{ height:100%; border-radius:999px; }
+
+/* Two-column layout */
+.two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.ai-card, .rec-card{ padding:20px; }
+.ai-text{ font-size:0.96rem; color:var(--text-0); line-height:1.6; margin:0; }
+.rec-list{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px; }
+.rec-list li{ font-size:0.92rem; color:var(--text-0); padding-left:20px; position:relative; }
+.rec-list li::before{ content:'✓'; position:absolute; left:0; color:var(--accent); font-weight:700; }
+
+.whois-table{ width:100%; border-collapse:collapse; font-size:0.88rem; }
+.whois-table td{ padding:8px 0; border-bottom:1px solid var(--border); color:var(--text-0); }
+.whois-table td:first-child{ color:var(--text-2); font-weight:600; width:42%; }
+.whois-table tr:last-child td{ border-bottom:none; }
+
+.ti-grid{ display:grid; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)); gap:12px; margin-bottom:20px; }
+.ti-stat{ background:var(--bg-soft); border-radius:var(--radius-md); padding:14px; text-align:center; }
+.ti-stat .val{ display:block; font-family:var(--font-mono); font-size:1.4rem; font-weight:700; color:var(--text-0); }
+.ti-stat .lab{ font-size:0.78rem; color:var(--text-2); margin-top:2px; }
+.ti-findings{ border-top:1px solid var(--border); padding-top:16px; }
+.findings-list{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:8px; }
+.findings-list li{ font-size:0.9rem; color:var(--text-0); padding-left:18px; position:relative; }
+.findings-list li::before{ content:'•'; position:absolute; left:0; color:var(--high); font-weight:700; }
+.findings-list li.benign::before{ content:'✓'; color:var(--safe); }
+
+.site-footer{ padding:32px 24px 48px; background:var(--bg-1); border-top:1px solid var(--border); }
+.footer-inner{ max-width:1180px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:14px; }
+.footer-copy{ margin:0; font-size:0.82rem; color:var(--text-2); text-align:center; }
+.footer-made{ margin:0; font-size:0.82rem; color:var(--text-2); }
+.footer-socials{ display:flex; align-items:center; gap:20px; }
+.social-link{
+  display:flex; align-items:center; justify-content:center;
+  width:38px; height:38px; border-radius:50%;
+  border:1.5px solid var(--border);
+  color:var(--text-1);
+  background:var(--bg-soft);
+  transition:color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
+  text-decoration:none;
+}
+.social-link svg{ width:18px; height:18px; }
+.social-link:hover{ color:var(--accent); border-color:var(--accent); background:var(--accent-dim); transform:translateY(-2px); }
+
+a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
+
+@media (max-width:840px){ .two-col, .favicon-compare{ grid-template-columns:1fr; } }
+@media (max-width:600px){
+  .hero{ padding:40px 18px 24px; }
+  .panel{ padding:22px 18px; }
+  .button-row{ flex-direction:column; }
+  .btn{ width:100%; justify-content:center; }
+  .score-confidence-block{ flex-direction:column; }
+  .score-half + .score-half{ border-left:none; border-top:1px solid var(--border); }
+}
+@media (prefers-reduced-motion:reduce){ .scan-bar-fill, .log-line{ animation:none; opacity:1; transform:none; width:100%; } }
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div class="topbar-inner">
+    <div class="brand">
+      <span class="brand-glyph">🛡</span>
+      <span class="brand-name">PhishGuard<span class="accent">AI</span></span>
+    </div>
+    <div class="topbar-status">
+      <span class="status-dot"></span>
+      <span>Engine active</span>
+    </div>
+  </div>
+</header>
+
+<main>
+  <section class="hero">
+    <div class="hero-inner">
+      <p class="eyebrow">CLIENT-SIDE URL HEURISTICS LAB</p>
+      <h1 class="hero-title">Read a URL like an<br/><span class="accent">analyst</span> reads a threat report.</h1>
+      <p class="hero-sub">PhishGuard AI breaks a URL into the same lexical and structural signals real phishing filters examine — keywords, character noise, TLD reputation, brand lookalikes — and explains the verdict in plain language.</p>
+
+      <div class="disclaimer-strip" role="note">
+        <span class="disclaimer-tag">EDUCATIONAL TOOL</span>
+        <p>This is a learning project, not a real security product. Every score is a local heuristic estimate in your browser. Domain age, WHOIS, and favicon data for unrecognized domains are <strong>simulated</strong>. Never use this as your sole basis for trusting a link.</p>
+      </div>
+
+      <div class="terminal" aria-hidden="true">
+        <div class="terminal-bar"><span class="terminal-title">Live analysis log</span></div>
+        <div class="terminal-body" id="terminalBody">
+          <p class="line">PhishGuard AI heuristics engine ready.</p>
+          <p class="line">Awaiting target URL…</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- INPUT PANEL -->
+  <section class="panel analyze-panel" id="analyze">
+    <div class="panel-head">
+      <h2><span class="idx">01</span> URL Analysis</h2>
+      <p class="panel-desc">Paste a full URL (including <code>http://</code> or <code>https://</code>) to run the heuristics engine.</p>
+    </div>
+    <div class="glass card input-card">
+      <label for="urlInput" class="sr-only">URL to analyze</label>
+      <div class="input-row">
+        <span class="input-icon">🔗</span>
+        <input type="text" id="urlInput" placeholder="https://example.com/login?verify=account" autocomplete="off" spellcheck="false"/>
+      </div>
+      <div class="button-row">
+        <button class="btn btn-primary" id="analyzeBtn"><span class="btn-icon">▶</span> Analyze URL</button>
+        <button class="btn btn-ghost" id="clearBtn">Clear</button>
+      </div>
+      <p class="input-error hidden" id="inputError"></p>
+      <div class="sample-row">
+        <span class="sample-label">Try:</span>
+        <button class="chip" data-sample="https://www.wikipedia.org/wiki/Phishing">wikipedia.org</button>
+        <button class="chip" data-sample="http://paytm-verification-secure.tk/login?redirect=account">paytm-verification.tk</button>
+        <button class="chip" data-sample="https://g00gle-login.com.account-verify.xyz/signin">g00gle-login lookalike</button>
+        <button class="chip" data-sample="https://secure-paypa1.com/verify?user=123">paypa1 lookalike</button>
+      </div>
+    </div>
+  </section>
+
+  <!-- SCAN LOADING -->
+  <div class="scan-loading hidden" id="scanLoading">
+    <div class="scan-bar"><div class="scan-bar-fill" id="scanBarFill"></div></div>
+    <div class="scan-logs" id="scanLogs"></div>
+  </div>
+
+  <!-- RESULTS -->
+  <div id="resultsArea" class="hidden">
+
+    <!-- RISK SCORE + CONFIDENCE -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">02</span> Risk Assessment</h2>
+      </div>
+      <div class="glass card risk-dashboard">
+        <!-- Gauge -->
+        <div class="risk-score-block">
+          <div class="risk-gauge" aria-label="Risk gauge">
+            <svg class="gauge-svg" viewBox="0 0 120 120">
+              <circle class="gauge-track" cx="60" cy="60" r="50"/>
+              <circle class="gauge-fill" id="gaugeFill" cx="60" cy="60" r="50" stroke-dasharray="314" stroke-dashoffset="314"/>
+            </svg>
+            <div class="gauge-center">
+              <span class="gauge-number" id="gaugeNumber">—</span>
+              <span class="gauge-max">/100</span>
+            </div>
+          </div>
+          <div class="risk-level-block">
+            <span class="risk-level-tag" id="riskLevelTag">—</span>
+            <p class="risk-url-echo" id="riskUrlEcho"></p>
+            <p class="risk-summary" id="riskSummary"></p>
+          </div>
+        </div>
+
+        <!-- ✨ NEW: Risk Score + Confidence Score side-by-side -->
+        <div class="score-confidence-block" id="scoreConfidenceBlock">
+          <div class="score-half">
+            <span class="score-half-label">Risk Score</span>
+            <span class="score-half-number" id="riskScoreNum">—</span>
+            <span class="score-half-sub">out of 100</span>
+          </div>
+          <div class="score-half">
+            <span class="score-half-label">Confidence</span>
+            <span class="score-half-number" id="confidenceNum">—</span>
+            <span class="score-half-sub">heuristic certainty</span>
+            <div class="confidence-bar-wrap">
+              <div class="confidence-bar-track">
+                <div class="confidence-bar-fill" id="confidenceBarFill" style="width:0%"></div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="progress-row">
+          <div class="progress-track"><div class="progress-fill" id="riskProgressFill"></div></div>
+          <div class="progress-labels"><span>Safe</span><span>Low</span><span>Medium</span><span>High</span><span>Critical</span></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ✨ NEW: FAVICON COMPARISON PANEL -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">03</span> Favicon Detection</h2>
+        <p class="panel-desc">Comparing the site's favicon against the brand it appears to impersonate. Legitimate sites use their own branding; phishing sites often borrow or omit favicons.</p>
+      </div>
+      <div class="glass card favicon-panel">
+        <div class="card-label"><span class="pulse-dot"></span> Visual Identity Check</div>
+        <div class="favicon-compare" id="faviconCompare">
+          <!-- Filled by JS -->
+        </div>
+        <div class="favicon-verdict hidden" id="faviconVerdict"></div>
+      </div>
+    </section>
+
+    <!-- CHECKS GRID -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">04</span> Heuristic Checks</h2>
+        <p class="panel-desc">Each signal is scored independently. A single flag does not mean the URL is malicious — context matters.</p>
+      </div>
+      <div class="checks-grid" id="checksGrid"></div>
+    </section>
+
+    <!-- THREAT INTEL -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">05</span> Threat Intelligence</h2>
+        <p class="panel-desc">Simulated threat-database lookup for educational purposes.</p>
+      </div>
+      <div class="glass card" style="padding:20px">
+        <div class="card-label"><span class="pulse-dot"></span> Simulated threat feed</div>
+        <div class="ti-grid" id="tiGrid"></div>
+        <div class="ti-findings">
+          <ul class="findings-list" id="tiFindings"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- AI ANALYST + RECOMMENDATIONS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">06</span> Analysis &amp; Recommendations</h2>
+      </div>
+      <div class="two-col">
+        <div class="glass card ai-card">
+          <div class="card-label"><span class="pulse-dot"></span> AI Analyst Summary</div>
+          <p class="ai-text" id="aiText"></p>
+        </div>
+        <div class="glass card rec-card">
+          <div class="card-label"><span class="pulse-dot"></span> Recommended Actions</div>
+          <ul class="rec-list" id="recList"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- WHOIS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">07</span> Domain Intelligence</h2>
+        <p class="panel-desc">Simulated WHOIS data — for teaching domain registration patterns only.</p>
+      </div>
+      <div class="glass card" style="padding:20px">
+        <div class="card-label"><span class="pulse-dot"></span> WHOIS lookup (simulated)</div>
+        <table class="whois-table" id="whoisTable"></table>
+      </div>
+    </section>
+
+  </div><!-- /resultsArea -->
+</main>
+
+<footer class="site-footer">
+  <div class="footer-inner">
+    <p class="footer-copy">PhishGuard AI — Educational project · Not a real security product · All data is heuristic/simulated</p>
+    <div class="footer-socials">
+      <a href="https://www.instagram.com/itz.muthuu?igsh=MXZiNGhqNmpoNGU1bw==" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
+      </a>
+      <a href="https://github.com/muthupriyan-dev" target="_blank" rel="noopener" class="social-link" aria-label="GitHub">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
+      </a>
+      <a href="https://mail.google.com/mail/?view=cm&to=smuthupriyan020108@gmail.com" target="_blank" rel="noopener" class="social-link" aria-label="Email">
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+      </a>
+    </div>
+    <p class="footer-made">Made by <strong>Muthupriyan</strong></p>
+  </div>
+</footer>
+
+<script>
+// ========================================================
+//  PHISHGUARD AI — HEURISTICS ENGINE
+//  Includes: Bug Fix, Favicon Detection, Confidence Score
+// ========================================================
+
+// ---------- KNOWN BRANDS for favicon comparison ----------
+const BRAND_FAVICONS = {
+  google:   { name:'Google',   emoji:'🔵', domain:'google.com',   color:'#4285F4' },
+  paypal:   { name:'PayPal',   emoji:'🔷', domain:'paypal.com',   color:'#003087' },
+  paytm:    { name:'Paytm',    emoji:'🔵', domain:'paytm.com',    color:'#002970' },
+  amazon:   { name:'Amazon',   emoji:'🟠', domain:'amazon.com',   color:'#FF9900' },
+  facebook: { name:'Facebook', emoji:'🔵', domain:'facebook.com', color:'#1877F2' },
+  apple:    { name:'Apple',    emoji:'⚫', domain:'apple.com',    color:'#555555' },
+  netflix:  { name:'Netflix',  emoji:'🔴', domain:'netflix.com',  color:'#E50914' },
+  microsoft:{ name:'Microsoft',emoji:'🟦', domain:'microsoft.com',color:'#00A4EF' },
+  wikipedia:{ name:'Wikipedia',emoji:'⚪', domain:'wikipedia.org',color:'#333333' },
+};
+
+// Detect which brand a suspicious URL is impersonating
+function detectImpersonatedBrand(hostname, fullUrl) {
+  const h = hostname.toLowerCase() + ' ' + fullUrl.toLowerCase();
+  for (const [key, brand] of Object.entries(BRAND_FAVICONS)) {
+    if (h.includes(key)) return { key, brand };
+  }
+  return null;
+}
+
+// Is the domain actually the legitimate one?
+function isLegitDomain(hostname, brandKey) {
+  const legit = BRAND_FAVICONS[brandKey]?.domain;
+  if (!legit) return false;
+  return hostname === legit || hostname.endsWith('.' + legit);
+}
+
+// ---------- HEURISTICS ENGINE ----------
+function analyzeURL(rawUrl) {
+  let parsed;
+  try { parsed = new URL(rawUrl); }
+  catch { return null; }
+
+  const hostname  = parsed.hostname.toLowerCase();
+  const fullUrl   = rawUrl.toLowerCase();
+  const tld       = hostname.split('.').slice(-1)[0];
+  const domainParts = hostname.split('.');
+
+  const suspiciousTLDs = ['tk','ml','ga','cf','gq','xyz','top','click','work','loan','online','site','icu','cyou','vip'];
+  const phishKeywords  = ['verify','login','secure','account','update','confirm','banking','paypal','amazon','google','apple','microsoft','signin','password','reset','suspended','urgent','limited','alert'];
+  const homoglyphs     = ['rn','vv','0o','1l']; // only multi-char lookalike patterns
+
+  // Checks
+  const isHTTPS      = parsed.protocol === 'https:';
+  const hasSuspTLD   = suspiciousTLDs.includes(tld);
+  const urlLen       = rawUrl.length;
+  const hasIPHost    = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
+  const subdomainDepth = domainParts.length - 2;
+  const keywordHits  = phishKeywords.filter(k => fullUrl.includes(k));
+  // Check for homoglyph patterns: digit-letter combos like g00gle, paypa1
+  const hasHomoglyph = /[a-z]0[a-z]|[a-z]1[a-z]|rn|vv/.test(hostname);
+  const hasRedirect  = fullUrl.includes('redirect') || fullUrl.includes('url=') || fullUrl.includes('return=');
+  const numSpecialChars = (hostname.match(/[-_]/g)||[]).length;
+  const hasBrandInSubdomain = Object.keys(BRAND_FAVICONS).some(b => {
+    const parts = domainParts.slice(0, -2);
+    return parts.some(p => p.includes(b));
+  });
+
+  // Score accumulation
+  let score = 0;
+  const checks = [];
+
+  // 1. HTTPS
+  checks.push({
+    name:'HTTPS Protocol',
+    status: isHTTPS ? 'pass' : 'fail',
+    score: isHTTPS ? 0 : 20,
+    explanation: isHTTPS ? 'Connection is encrypted via HTTPS.' : 'No HTTPS — data sent in plaintext. High risk.',
+    weight: isHTTPS ? 0 : 20,
+  });
+  score += isHTTPS ? 0 : 20;
+
+  // 2. Suspicious TLD
+  checks.push({
+    name:'TLD Reputation',
+    status: hasSuspTLD ? 'fail' : 'pass',
+    score: hasSuspTLD ? 25 : 0,
+    explanation: hasSuspTLD ? `".${tld}" is a free/high-abuse TLD frequently seen in phishing.` : `".${tld}" is not a known high-abuse TLD.`,
+    weight: hasSuspTLD ? 25 : 0,
+  });
+  score += hasSuspTLD ? 25 : 0;
+
+  // 3. IP host
+  checks.push({
+    name:'IP Address Host',
+    status: hasIPHost ? 'fail' : 'pass',
+    score: hasIPHost ? 30 : 0,
+    explanation: hasIPHost ? 'Domain is a raw IP — a classic phishing pattern.' : 'Domain uses a hostname, not a raw IP.',
+    weight: hasIPHost ? 30 : 0,
+  });
+  score += hasIPHost ? 30 : 0;
+
+  // 4. Keyword hits
+  const kwScore = Math.min(keywordHits.length * 8, 30);
+  checks.push({
+    name:'Phishing Keywords',
+    status: keywordHits.length === 0 ? 'pass' : keywordHits.length <= 2 ? 'warn' : 'fail',
+    score: kwScore,
+    explanation: keywordHits.length === 0 ? 'No phishing-related keywords found.' : `Found: ${keywordHits.slice(0,4).join(', ')}`,
+    weight: kwScore,
+  });
+  score += kwScore;
+
+  // 5. URL length
+  const lenScore = urlLen > 100 ? 15 : urlLen > 60 ? 7 : 0;
+  checks.push({
+    name:'URL Length',
+    status: urlLen > 100 ? 'fail' : urlLen > 60 ? 'warn' : 'pass',
+    score: lenScore,
+    explanation: `${urlLen} chars. ${urlLen > 100 ? 'Very long URLs often conceal malicious paths.' : urlLen > 60 ? 'Moderately long.' : 'Length looks normal.'}`,
+    weight: lenScore,
+  });
+  score += lenScore;
+
+  // 6. Subdomain depth
+  const subScore = subdomainDepth > 3 ? 20 : subdomainDepth > 1 ? 10 : 0;
+  checks.push({
+    name:'Subdomain Depth',
+    status: subdomainDepth > 3 ? 'fail' : subdomainDepth > 1 ? 'warn' : 'pass',
+    score: subScore,
+    explanation: `${subdomainDepth} subdomain level(s). ${subdomainDepth > 2 ? 'Deep subdomains can mask the real domain.' : 'Looks normal.'}`,
+    weight: subScore,
+  });
+  score += subScore;
+
+  // 7. Homoglyphs
+  checks.push({
+    name:'Homoglyph Detection',
+    status: hasHomoglyph ? 'warn' : 'pass',
+    score: hasHomoglyph ? 15 : 0,
+    explanation: hasHomoglyph ? 'Hostname contains characters that may mimic letters (e.g. 0→o, 1→l).' : 'No obvious character substitutions detected.',
+    weight: hasHomoglyph ? 15 : 0,
+  });
+  score += hasHomoglyph ? 15 : 0;
+
+  // 8. Brand in subdomain
+  checks.push({
+    name:'Brand in Subdomain',
+    status: hasBrandInSubdomain ? 'fail' : 'pass',
+    score: hasBrandInSubdomain ? 25 : 0,
+    explanation: hasBrandInSubdomain ? 'A known brand name appears in the subdomain — classic spoofing tactic.' : 'No known brand found embedded in the subdomain.',
+    weight: hasBrandInSubdomain ? 25 : 0,
+  });
+  score += hasBrandInSubdomain ? 25 : 0;
+
+  // 9. Open redirect
+  checks.push({
+    name:'Open Redirect',
+    status: hasRedirect ? 'warn' : 'pass',
+    score: hasRedirect ? 12 : 0,
+    explanation: hasRedirect ? 'URL contains redirect parameters, which can chain users to malicious destinations.' : 'No redirect chaining parameters found.',
+    weight: hasRedirect ? 12 : 0,
+  });
+  score += hasRedirect ? 12 : 0;
+
+  // 10. Special chars in host
+  const specScore = numSpecialChars > 3 ? 15 : numSpecialChars > 1 ? 7 : 0;
+  checks.push({
+    name:'Special Chars in Host',
+    status: numSpecialChars > 3 ? 'fail' : numSpecialChars > 1 ? 'warn' : 'pass',
+    score: specScore,
+    explanation: `${numSpecialChars} hyphens/underscores. ${numSpecialChars > 2 ? 'Excessive special chars often found in generated phishing domains.' : 'Within normal range.'}`,
+    weight: specScore,
+  });
+  score += specScore;
+
+  // 11. Excessive query parameters (phishing URLs often chain many params)
+  const paramCount = [...parsed.searchParams].length;
+  const paramScore = paramCount > 5 ? 12 : paramCount > 2 ? 5 : 0;
+  checks.push({
+    name:'Query Parameters',
+    status: paramCount > 5 ? 'fail' : paramCount > 2 ? 'warn' : 'pass',
+    score: paramScore,
+    explanation: paramCount === 0 ? 'No query parameters.' : `${paramCount} parameter(s) found. ${paramCount > 5 ? 'Excessive params often used to obscure phishing redirects.' : paramCount > 2 ? 'Moderate number of params — worth noting.' : 'Normal range.'}`,
+    weight: paramScore,
+  });
+  score += paramScore;
+
+  score = Math.min(Math.round(score), 100);
+
+  // ---------- CONFIDENCE SCORE ----------
+  // Confidence = how many heuristics fired with data (more signals = more confident)
+  const signalsFired = checks.filter(c => c.weight > 0).length;
+  const totalSignals = checks.length;
+  // More signals fired = more confident in verdict. Also: extreme scores = higher confidence.
+  let baseConfidence = Math.round((signalsFired / totalSignals) * 70);
+  // If score is very high or very low, bump confidence
+  if (score >= 75 || score <= 10) baseConfidence += 20;
+  else if (score >= 55 || score <= 25) baseConfidence += 10;
+  const confidence = Math.min(Math.max(baseConfidence, 35), 97);
+
+  // ---------- FAVICON DATA ----------
+  const impersonated = detectImpersonatedBrand(hostname, fullUrl);
+  const isLegit = impersonated ? isLegitDomain(hostname, impersonated.key) : false;
+
+  // Simulated favicon URL (real Google favicon service for legit domains only)
+  const faviconData = {
+    impersonated,
+    isLegit,
+    suspectDomain: hostname,
+    // For educational display only — real fetch not attempted for suspected phishing sites
+    canFetchSuspect: false,
+  };
+
+  // ---------- RISK LEVEL ----------
+  let riskLevel, riskColor, summary;
+  if (score < 15)      { riskLevel='SAFE';     riskColor='var(--safe)';     summary='No significant risk signals detected. This URL appears legitimate based on our heuristics.'; }
+  else if (score < 35) { riskLevel='LOW';       riskColor='var(--low)';      summary='Minor signals present. Likely safe, but verify the domain before entering credentials.'; }
+  else if (score < 55) { riskLevel='MEDIUM';    riskColor='var(--medium)';   summary='Multiple risk signals detected. Proceed cautiously — check the domain carefully.'; }
+  else if (score < 75) { riskLevel='HIGH';      riskColor='var(--high)';     summary='Strong phishing indicators present. Do not enter personal information on this site.'; }
+  else                 { riskLevel='CRITICAL';  riskColor='var(--critical)'; summary='Multiple critical phishing signals detected. This URL is highly suspicious.'; }
+
+  // WHOIS (simulated) — realistic date-based generation
+  const now = new Date();
+
+  function fmtDate(d) {
+    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
+  }
+  function dateDiff(past, present) {
+    const diffMs  = present - past;
+    const diffDay = Math.floor(diffMs / 86400000);
+    if (diffDay === 0) return 'Registered today';
+    if (diffDay < 30)  return diffDay + ' day' + (diffDay !== 1 ? 's' : '');
+    const diffMon = Math.floor(diffDay / 30);
+    if (diffMon < 12)  return diffMon + ' month' + (diffMon !== 1 ? 's' : '');
+    const diffYr  = Math.floor(diffDay / 365);
+    return diffYr + ' year' + (diffYr !== 1 ? 's' : '');
+  }
+
+  let createdDate, expiresDate;
+  if (hasSuspTLD || hasIPHost) {
+    // Newly registered — always show today
+    createdDate = new Date(now);
+    createdDate.setHours(0,0,0,0);
+    expiresDate = new Date(createdDate);
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+  } else if (subdomainDepth > 2 || hasBrandInSubdomain) {
+    // Suspicious — registered 7 to 14 days ago
+    const daysAgo = 7 + Math.floor(Math.abs(hostname.length % 8));
+    createdDate = new Date(now - daysAgo * 86400000);
+    createdDate.setHours(0,0,0,0);
+    expiresDate = new Date(createdDate);
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+  } else {
+    // Legitimate-looking — older domain, seeded by hostname for consistency
+    const seed    = hostname.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
+    const yearsOld = 4 + (seed % 14);          // 4–17 years old
+    createdDate   = new Date(now);
+    createdDate.setFullYear(createdDate.getFullYear() - yearsOld);
+    createdDate.setMonth(seed % 12);
+    createdDate.setDate(1 + (seed % 28));
+    expiresDate   = new Date(now);
+    expiresDate.setFullYear(expiresDate.getFullYear() + 1 + (seed % 3));
+  }
+
+  const domainAge  = dateDiff(createdDate, now);
+  const registrar  = hasSuspTLD ? 'Freenom (free registrar)' : 'GoDaddy / Namecheap';
+  const whois = {
+    'Registrant':  hasSuspTLD || hasIPHost ? 'REDACTED FOR PRIVACY' : 'Public organization',
+    'Registrar':   registrar,
+    'Created':     fmtDate(createdDate) + ' (simulated)',
+    'Expires':     fmtDate(expiresDate) + ' (simulated)',
+    'Domain Age':  domainAge,
+    'HTTPS cert':  isHTTPS ? 'Present' : 'Absent',
+  };
+
+  // Threat intel (simulated)
+  const tiStats = [
+    { val: hasSuspTLD || hasIPHost ? '12' : '0', lab:'Reported Incidents' },
+    { val: keywordHits.length > 2 ? 'High' : keywordHits.length > 0 ? 'Medium' : 'Low', lab:'Keyword Match Level' },
+    { val: score > 60 ? 'Yes' : 'No', lab:'Blocklist Match' },
+    { val: confidence + '%', lab:'Heuristic Confidence' },
+  ];
+  const tiFindings = [];
+  if (hasIPHost)    tiFindings.push({ text:'IP-based hosting — typical in fast-flux phishing networks', benign:false });
+  if (hasSuspTLD)   tiFindings.push({ text:`Free TLD ".${tld}" heavily abused in phishing campaigns`, benign:false });
+  if (hasBrandInSubdomain) tiFindings.push({ text:'Brand name embedded in subdomain to appear legitimate', benign:false });
+  if (keywordHits.length > 2) tiFindings.push({ text:`High-risk keyword density: ${keywordHits.join(', ')}`, benign:false });
+  if (isHTTPS)      tiFindings.push({ text:'HTTPS present — necessary but not sufficient for safety', benign:true });
+  if (!hasSuspTLD && !hasIPHost && score < 20) tiFindings.push({ text:'No active threat database matches (simulated)', benign:true });
+
+  // Recommendations
+  const recs = [];
+  if (!isHTTPS)      recs.push('Never submit passwords or payment info over HTTP.');
+  if (hasSuspTLD)    recs.push(`Avoid clicking links on ".${tld}" domains — high abuse rate.`);
+  if (hasBrandInSubdomain) recs.push('The brand name you see may be a subdomain, not the real domain.');
+  if (keywordHits.length) recs.push('Urgency words like "verify" and "secure" are manipulation tactics.');
+  if (hasRedirect)   recs.push('Redirect parameters can chain you through to a malicious site.');
+  recs.push('When in doubt, navigate directly to the brand\'s official website.');
+  recs.push('Use a password manager — it won\'t autofill on fake domains.');
+
+  // AI analyst text
+  const aiText = `This URL scores ${score}/100 on our phishing risk scale with ${confidence}% heuristic confidence. ${summary} The analysis flagged ${signalsFired} of ${totalSignals} possible risk signals. Key concerns: ${checks.filter(c=>c.weight>0).map(c=>c.name).slice(0,3).join(', ') || 'none'}. ${impersonated ? `The URL appears to be impersonating ${impersonated.brand.name} — the favicon comparison above reveals the visual identity mismatch.` : ''} Always corroborate with a second security tool before trusting any URL.`;
+
+  return { score, confidence, riskLevel, riskColor, summary, checks, hostname, whois, tiStats, tiFindings, recs, aiText, faviconData };
+}
+
+// ---------- RENDER ----------
+function renderFavicon(result) {
+  const { faviconData, hostname } = result;
+  const compare = document.getElementById('faviconCompare');
+  const verdict = document.getElementById('faviconVerdict');
+  compare.innerHTML = '';
+  verdict.classList.add('hidden');
+
+  if (!faviconData.impersonated) {
+    // No brand detected — show neutral state
+    compare.innerHTML = `
+      <div class="favicon-box" style="grid-column:1/-1; flex-direction:row; gap:16px; text-align:left;">
+        <div class="favicon-img-wrap"><span class="fav-placeholder">🌐</span></div>
+        <div>
+          <div class="favicon-domain">${hostname}</div>
+          <p style="margin:6px 0 0; font-size:0.88rem; color:var(--text-1);">No known brand impersonation detected. The domain does not appear to be mimicking a recognized brand in our database.</p>
+        </div>
+      </div>`;
+    verdict.className = 'favicon-verdict unknown';
+    verdict.innerHTML = '<span class="favicon-status-icon">ℹ️</span> No brand impersonation signals found for favicon comparison.';
+    verdict.classList.remove('hidden');
+    return;
+  }
+
+  const { brand, key } = faviconData.impersonated;
+  const realFaviconUrl = `https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`;
+
+  // Fix 3: If this IS the legitimate domain, show OFFICIAL — no VS comparison needed
+  if (faviconData.isLegit) {
+    compare.innerHTML = `
+      <div class="favicon-box real" style="grid-column:1/-1; flex-direction:row; gap:16px; text-align:left;">
+        <div class="favicon-img-wrap">
+          <img src="${realFaviconUrl}" alt="${brand.name} favicon" onerror="this.style.display='none';this.nextElementSibling.style.display='block'"/>
+          <span class="fav-placeholder" style="display:none">${brand.emoji}</span>
+        </div>
+        <div>
+          <div class="favicon-domain">${hostname}</div>
+          <span class="favicon-badge legit" style="display:inline-block;margin:6px 0;">✓ OFFICIAL DOMAIN</span>
+          <p style="margin:4px 0 0;font-size:0.88rem;color:var(--text-1);">This is the authentic ${brand.name} domain. Favicon matches the official brand identity.</p>
+        </div>
+      </div>`;
+    verdict.className = 'favicon-verdict match';
+    verdict.innerHTML = `<span class="favicon-status-icon">✅</span> Confirmed official <strong>${brand.name}</strong> domain. No impersonation detected.`;
+    verdict.classList.remove('hidden');
+    return;
+  }
+
+  // Suspect domain impersonating a brand — show VS comparison
+  const realBox = document.createElement('div');
+  realBox.className = 'favicon-box real';
+  realBox.innerHTML = `
+    <div class="favicon-img-wrap">
+      <img src="${realFaviconUrl}" alt="${brand.name} favicon" onerror="this.style.display='none';this.nextElementSibling.style.display='flex'"/>
+      <span class="fav-placeholder" style="display:none">${brand.emoji}</span>
+    </div>
+    <div class="favicon-domain">${brand.domain}</div>
+    <span class="favicon-badge legit">✓ OFFICIAL</span>
+    <p style="margin:4px 0 0;font-size:0.8rem;color:var(--text-1);">Authentic ${brand.name} favicon loaded from official domain</p>`;
+
+  const suspectBox = document.createElement('div');
+  suspectBox.className = 'favicon-box suspect';
+  suspectBox.innerHTML = `
+    <div class="favicon-img-wrap" style="border-color:#fecaca">
+      <span class="fav-placeholder">⚠️</span>
+    </div>
+    <div class="favicon-domain">${hostname}</div>
+    <span class="favicon-badge suspect-badge">⚠ SUSPECT</span>
+    <p style="margin:4px 0 0;font-size:0.8rem;color:var(--text-1);">Favicon fetch blocked — loading images from suspected phishing domains is unsafe</p>`;
+
+  const vsDiv = document.createElement('div');
+  vsDiv.className = 'favicon-vs';
+  vsDiv.textContent = 'VS';
+
+  compare.appendChild(realBox);
+  compare.appendChild(vsDiv);
+  compare.appendChild(suspectBox);
+
+  verdict.className = 'favicon-verdict mismatch';
+  verdict.innerHTML = `<span class="favicon-status-icon">🚨</span> This URL appears to be impersonating <strong>${brand.name}</strong> (${brand.domain}). The suspect domain <code>${hostname}</code> is not affiliated with ${brand.name}. Real ${brand.name} services only operate from <strong>${brand.domain}</strong>.`;
+  verdict.classList.remove('hidden');
+}
+
+function renderResults(result) {
+  const { score, confidence, riskLevel, riskColor, summary, checks, hostname, whois, tiStats, tiFindings, recs, aiText } = result;
+
+  // Gauge
+  const circ = 2 * Math.PI * 50;
+  const offset = circ - (score / 100) * circ;
+  const gf = document.getElementById('gaugeFill');
+  gf.style.strokeDashoffset = offset;
+  gf.style.stroke = riskColor;
+  document.getElementById('gaugeNumber').textContent = score;
+  document.getElementById('riskLevelTag').textContent = riskLevel;
+  document.getElementById('riskLevelTag').style.borderColor = riskColor;
+  document.getElementById('riskLevelTag').style.color = riskColor;
+  document.getElementById('riskUrlEcho').textContent = hostname;
+  document.getElementById('riskSummary').textContent = summary;
+
+  // Risk progress bar
+  const pf = document.getElementById('riskProgressFill');
+  pf.style.width = score + '%';
+  pf.style.background = riskColor;
+
+  // ✨ Confidence Score display
+  document.getElementById('riskScoreNum').textContent = score;
+  document.getElementById('riskScoreNum').style.color = riskColor;
+  document.getElementById('confidenceNum').textContent = confidence + '%';
+  const cf = document.getElementById('confidenceBarFill');
+  cf.style.width = confidence + '%';
+  // Colour the confidence bar: high confidence = accent, low = muted
+  cf.style.background = confidence >= 80 ? 'var(--accent)' : confidence >= 60 ? 'var(--medium)' : 'var(--text-2)';
+
+  // Favicon
+  renderFavicon(result);
+
+  // Checks
+  const grid = document.getElementById('checksGrid');
+  grid.innerHTML = '';
+  checks.forEach(c => {
+    const maxScore = 30;
+    const pct = Math.round((c.weight / maxScore) * 100);
+    const barColor = c.status === 'pass' ? 'var(--safe)' : c.status === 'warn' ? 'var(--medium)' : 'var(--critical)';
+    const label = c.status === 'pass' ? 'PASS' : c.status === 'warn' ? 'WARN' : 'FAIL';
+    // ✅ BUG FIX: className = 'check-status ' + status  (no 'status-' prefix)
+    grid.innerHTML += `
+      <div class="check-card">
+        <div class="check-head">
+          <span class="check-name">${c.name}</span>
+          <span class="check-status ${c.status}">${label}</span>
+        </div>
+        <p class="check-explanation">${c.explanation}</p>
+        <div class="check-bar-track">
+          <div class="check-bar-fill" style="width:${pct}%;background:${barColor}"></div>
+        </div>
+      </div>`;
+  });
+
+  // Threat Intel
+  const tg = document.getElementById('tiGrid');
+  tg.innerHTML = tiStats.map(s => `<div class="ti-stat"><span class="val">${s.val}</span><span class="lab">${s.lab}</span></div>`).join('');
+  const tf = document.getElementById('tiFindings');
+  tf.innerHTML = tiFindings.map(f => `<li class="${f.benign?'benign':''}">${f.text}</li>`).join('');
+
+  // AI text
+  document.getElementById('aiText').textContent = aiText;
+
+  // Recs
+  document.getElementById('recList').innerHTML = recs.map(r => `<li>${r}</li>`).join('');
+
+  // WHOIS
+  const wt = document.getElementById('whoisTable');
+  wt.innerHTML = Object.entries(whois).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+}
+
+// ---------- TERMINAL LOG ----------
+function termLog(msg, cls='') {
+  const body = document.getElementById('terminalBody');
+  const p = document.createElement('p');
+  p.className = 'line' + (cls ? ' ' + cls : '');
+  p.textContent = msg;
+  body.appendChild(p);
+  body.scrollTop = body.scrollHeight;
+  if (body.children.length > 12) body.removeChild(body.firstChild);
+}
+
+// ---------- SCAN ANIMATION ----------
+function runScan(url, result) {
+  const loading = document.getElementById('scanLoading');
+  const logsEl  = document.getElementById('scanLogs');
+  loading.classList.remove('hidden');
+
+  const steps = [
+    [0,   '⏳ Parsing URL structure…'],
+    [250, '🔍 Checking TLD reputation…'],
+    [500, '🔑 Scanning for phishing keywords…'],
+    [750, '🌐 Simulating WHOIS lookup…'],
+    [1000,'🖼  Running favicon identity check…'],
+    [1250,'🧠 Computing confidence score…'],
+    [1600,'✅ Analysis complete.', 'ok'],
+  ];
+
+  steps.forEach(([delay, msg, cls]) => {
+    setTimeout(() => {
+      const p = document.createElement('p');
+      p.className = 'log-line' + (cls ? ' '+cls : '');
+      p.style.animationDelay = '0ms';
+      p.textContent = msg;
+      logsEl.appendChild(p);
+      termLog(msg, cls);
+    }, delay);
+  });
+
+  setTimeout(() => {
+    loading.classList.add('hidden');
+    logsEl.innerHTML = '';
+    renderResults(result);
+    document.getElementById('resultsArea').classList.remove('hidden');
+    document.getElementById('resultsArea').scrollIntoView({ behavior:'smooth', block:'start' });
+  }, 1900);
+}
+
+let lastResult = null;
+
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  const url = document.getElementById('urlInput').value.trim();
+  const err = document.getElementById('inputError');
+  if (!url) { err.textContent='Please enter a URL.'; err.classList.remove('hidden'); return; }
+  try { new URL(url); } catch { err.textContent='Please enter a valid URL including http:// or https://'; err.classList.remove('hidden'); return; }
+  err.classList.add('hidden');
+  document.getElementById('resultsArea').classList.add('hidden');
+  const result = analyzeURL(url);
+  if (!result) { err.textContent='Could not parse URL.'; err.classList.remove('hidden'); return; }
+  lastResult = result;
+  runScan(url, result);
+});
+
+document.getElementById('clearBtn').addEventListener('click', () => {
+  document.getElementById('urlInput').value = '';
+  document.getElementById('resultsArea').classList.add('hidden');
+  document.getElementById('inputError').classList.add('hidden');
+  document.getElementById('terminalBody').innerHTML = '<p class="line">Cleared. Awaiting target URL…</p>';
+});
+
+document.querySelectorAll('.chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.getElementById('urlInput').value = chip.dataset.sample;
+    document.getElementById('analyzeBtn').click();
+  });
+});
+
+document.getElementById('urlInput').addEventListener('keydown', e => {
+  if (e.key === 'Enter') document.getElementById('analyzeBtn').click();
+});
+</script>
+</body>
+</html>
