@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-<title>PhishGuard AI — Educational Phishing URL Analyzer</title>
+<title>PhishGuard AI Pro — Educational Phishing URL Analyzer</title>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=Inter:wght@400;500;600;700;800&display=swap');
 
@@ -31,21 +31,42 @@
   --font-mono:'JetBrains Mono', ui-monospace, SFMono-Regular, Menlo, monospace;
   --font-sans:'Inter', system-ui, -apple-system, sans-serif;
 }
+
+/* ---------- DARK MODE OVERRIDES (same variable names, new values) ---------- */
+body.dark-mode{
+  --bg-0:#0d1117;
+  --bg-1:#161b22;
+  --bg-soft:#1b212e;
+  --card:#161b22;
+  --border:#2a3344;
+  --shadow:0 1px 2px rgba(0,0,0,0.3), 0 8px 24px rgba(0,0,0,0.35);
+  --accent:#6d8bf5;
+  --accent-dim:#1c2540;
+  --accent-ink:#a9bcff;
+  --text-0:#e6edf3;
+  --text-1:#9aa6b8;
+  --text-2:#6e7888;
+}
+
 *{ box-sizing:border-box; }
 html{ scroll-behavior:smooth; }
-body{ margin:0; background:var(--bg-0); color:var(--text-0); font-family:var(--font-sans); line-height:1.55; overflow-x:hidden; }
+body{ margin:0; background:var(--bg-0); color:var(--text-0); font-family:var(--font-sans); line-height:1.55; overflow-x:hidden; transition:background .25s ease, color .25s ease; }
 .hidden{ display:none !important; }
 .sr-only{ position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
 code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); background:var(--accent-dim); padding:1px 6px; border-radius:5px; }
 
 /* Topbar */
-.topbar{ position:sticky; top:0; z-index:20; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); }
-.topbar-inner{ max-width:1180px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; }
+.topbar{ position:sticky; top:0; z-index:20; background:rgba(255,255,255,0.85); backdrop-filter:blur(10px); border-bottom:1px solid var(--border); transition:background .25s ease, border-color .25s ease; }
+body.dark-mode .topbar{ background:rgba(13,17,23,0.85); }
+.topbar-inner{ max-width:1180px; margin:0 auto; padding:14px 24px; display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; }
 .brand{ display:flex; align-items:center; gap:8px; font-weight:700; font-size:1.05rem; }
 .brand-glyph{ font-size:1.2rem; }
 .accent{ color:var(--accent); }
+.topbar-right{ display:flex; align-items:center; gap:14px; }
 .topbar-status{ display:flex; align-items:center; gap:8px; font-size:0.85rem; color:var(--text-1); }
 .status-dot{ width:8px; height:8px; border-radius:50%; background:var(--safe); box-shadow:0 0 0 3px rgba(21,128,61,0.15); }
+.theme-toggle{ display:flex; align-items:center; justify-content:center; width:36px; height:36px; border-radius:50%; border:1.5px solid var(--border); background:var(--bg-soft); color:var(--text-1); cursor:pointer; font-size:1rem; transition:all .15s ease; }
+.theme-toggle:hover{ border-color:var(--accent); color:var(--accent); }
 
 /* Hero */
 .hero{ padding:56px 24px 32px; }
@@ -55,15 +76,18 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 .hero-sub{ font-size:1.05rem; color:var(--text-1); max-width:620px; margin:0 0 24px; }
 
 .disclaimer-strip{ display:flex; flex-direction:column; gap:6px; background:#fff8eb; border:1px solid #f3deac; border-radius:var(--radius-md); padding:14px 16px; margin-bottom:28px; }
+body.dark-mode .disclaimer-strip{ background:#2a230e; border-color:#5c4a14; }
 .disclaimer-tag{ display:inline-block; font-size:0.72rem; font-weight:700; letter-spacing:0.04em; color:#92660c; background:#fcecc6; border-radius:6px; padding:2px 8px; width:fit-content; }
+body.dark-mode .disclaimer-tag{ color:#f3d27a; background:#3a2f10; }
 .disclaimer-strip p{ margin:0; font-size:0.92rem; color:#6b4e15; }
+body.dark-mode .disclaimer-strip p{ color:#e2c478; }
 
 /* Terminal */
 .terminal{ background:var(--card); border:1px solid var(--border); border-radius:var(--radius-lg); box-shadow:var(--shadow); overflow:hidden; }
 .terminal-bar{ display:flex; align-items:center; gap:8px; padding:12px 16px; border-bottom:1px solid var(--border); background:var(--bg-soft); }
 .terminal-title{ font-size:0.85rem; font-weight:600; color:var(--text-1); }
 .terminal-title::before{ content:'● '; color:var(--safe); font-size:0.7rem; }
-.terminal-body{ padding:16px; display:flex; flex-direction:column; gap:6px; }
+.terminal-body{ padding:16px; display:flex; flex-direction:column; gap:6px; max-height:220px; overflow-y:auto; }
 .terminal-body .line{ margin:0; font-family:var(--font-mono); font-size:0.88rem; color:var(--text-0); }
 
 /* Panels */
@@ -94,16 +118,26 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 .btn-icon{ font-size:0.75rem; }
 .btn-ghost{ background:var(--bg-soft); color:var(--text-0); border-color:var(--border); }
 .btn-ghost:hover{ background:#e7eaf3; }
+body.dark-mode .btn-ghost:hover{ background:#222a3a; }
 
 .sample-row{ display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-top:16px; }
 .sample-label{ font-size:0.85rem; color:var(--text-2); }
 .chip{ font-family:var(--font-mono); font-size:0.82rem; color:var(--text-1); background:var(--bg-soft); border:1px solid var(--border); border-radius:999px; padding:6px 12px; cursor:pointer; transition:background .15s ease, color .15s ease; }
 .chip:hover{ background:var(--accent-dim); color:var(--accent-ink); border-color:var(--accent-dim); }
 
+/* QR upload box */
+.qr-box{ display:flex; align-items:center; gap:14px; margin-top:16px; padding:14px; border:1.5px dashed var(--border); border-radius:var(--radius-md); background:var(--bg-soft); flex-wrap:wrap; }
+.qr-box-text{ flex:1; min-width:180px; }
+.qr-box-text strong{ display:block; font-size:0.92rem; color:var(--text-0); margin-bottom:2px; }
+.qr-box-text span{ font-size:0.82rem; color:var(--text-2); }
+.qr-status{ font-size:0.82rem; margin-top:8px; }
+.qr-status.ok{ color:var(--safe); }
+.qr-status.err{ color:var(--critical); }
+
 /* Scan loading */
 .scan-loading{ max-width:1180px; margin:0 auto; padding:0 24px 12px; }
 .scan-bar{ height:6px; border-radius:999px; background:var(--bg-soft); overflow:hidden; margin-bottom:14px; }
-.scan-bar-fill{ height:100%; width:0; background:var(--accent); border-radius:999px; animation:scanProgress 1.7s ease forwards; }
+.scan-bar-fill{ height:100%; width:0; background:var(--accent); border-radius:999px; animation:scanProgress 1.9s ease forwards; }
 @keyframes scanProgress{ from{width:0} to{width:100%} }
 .scan-logs{ display:flex; flex-direction:column; gap:6px; }
 .log-line{ margin:0; font-size:0.88rem; color:var(--text-1); opacity:0; transform:translateY(4px); animation:logIn .35s ease forwards; }
@@ -111,119 +145,59 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 @keyframes logIn{ to{opacity:1; transform:translateY(0);} }
 
 /* ==========================================
-   FAVICON COMPARISON PANEL  (NEW)
+   TIMELINE ANALYSIS  (NEW)
+   ========================================== */
+.timeline-wrap{ padding:22px 20px; overflow-x:auto; }
+.timeline-track{ display:flex; align-items:flex-start; gap:0; min-width:680px; }
+.timeline-step{ flex:1; display:flex; flex-direction:column; align-items:center; text-align:center; position:relative; padding:0 4px; }
+.timeline-step .dot{ width:30px; height:30px; border-radius:50%; background:var(--bg-soft); border:2px solid var(--border); display:flex; align-items:center; justify-content:center; font-size:0.85rem; color:var(--text-2); transition:all .3s ease; z-index:1; }
+.timeline-step .line{ position:absolute; top:14px; left:-50%; width:100%; height:2px; background:var(--border); z-index:0; }
+.timeline-step:first-child .line{ display:none; }
+.timeline-step .label{ font-size:0.74rem; color:var(--text-2); margin-top:8px; max-width:90px; }
+.timeline-step.active .dot{ background:var(--accent); border-color:var(--accent); color:#fff; box-shadow:0 0 0 4px var(--accent-dim); }
+.timeline-step.active .line{ background:var(--accent); }
+.timeline-step.active .label{ color:var(--text-0); font-weight:600; }
+.timeline-step.done .dot{ background:var(--safe); border-color:var(--safe); color:#fff; }
+.timeline-step.done .line{ background:var(--safe); }
+
+/* ==========================================
+   FAVICON COMPARISON PANEL
    ========================================== */
 .favicon-panel{ padding:20px; }
-.favicon-compare{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:16px;
-  margin-top:12px;
-}
-.favicon-box{
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:10px;
-  padding:20px 16px;
-  border-radius:var(--radius-md);
-  border:1.5px solid var(--border);
-  background:var(--bg-soft);
-  text-align:center;
-  position:relative;
-}
+.favicon-compare{ display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:12px; }
+.favicon-box{ display:flex; flex-direction:column; align-items:center; gap:10px; padding:20px 16px; border-radius:var(--radius-md); border:1.5px solid var(--border); background:var(--bg-soft); text-align:center; position:relative; }
 .favicon-box.real{ border-color:#bbf7d0; background:#f0fdf4; }
+body.dark-mode .favicon-box.real{ background:#0f2419; border-color:#1d5c39; }
 .favicon-box.suspect{ border-color:#fecaca; background:#fff5f5; }
-.favicon-img-wrap{
-  width:56px; height:56px; border-radius:12px;
-  background:#fff; border:1px solid var(--border);
-  display:flex; align-items:center; justify-content:center;
-  box-shadow:0 2px 8px rgba(20,30,60,0.08);
-  overflow:hidden;
-  position:relative;
-}
+body.dark-mode .favicon-box.suspect{ background:#2a1212; border-color:#6b2424; }
+.favicon-img-wrap{ width:56px; height:56px; border-radius:12px; background:#fff; border:1px solid var(--border); display:flex; align-items:center; justify-content:center; box-shadow:0 2px 8px rgba(20,30,60,0.08); overflow:hidden; position:relative; }
 .favicon-img-wrap img{ width:32px; height:32px; object-fit:contain; }
 .favicon-img-wrap .fav-placeholder{ font-size:1.4rem; }
 .favicon-domain{ font-family:var(--font-mono); font-size:0.82rem; color:var(--text-1); word-break:break-all; }
-.favicon-badge{
-  font-size:0.7rem; font-weight:700; letter-spacing:0.04em;
-  border-radius:999px; padding:3px 10px;
-}
+.favicon-badge{ font-size:0.7rem; font-weight:700; letter-spacing:0.04em; border-radius:999px; padding:3px 10px; }
 .favicon-badge.legit{ background:#dcfce7; color:var(--safe); }
 .favicon-badge.suspect-badge{ background:#fee2e2; color:var(--critical); }
-.favicon-vs{
-  display:flex; align-items:center; justify-content:center;
-  font-weight:700; font-size:0.9rem; color:var(--text-2);
-  align-self:center;
-}
-.favicon-verdict{
-  margin-top:14px; padding:12px 14px; border-radius:var(--radius-md);
-  font-size:0.9rem;
-}
+.favicon-vs{ display:flex; align-items:center; justify-content:center; font-weight:700; font-size:0.9rem; color:var(--text-2); align-self:center; }
+.favicon-verdict{ margin-top:14px; padding:12px 14px; border-radius:var(--radius-md); font-size:0.9rem; }
 .favicon-verdict.match{ background:#f0fdf4; border:1px solid #bbf7d0; color:var(--safe); }
+body.dark-mode .favicon-verdict.match{ background:#0f2419; border-color:#1d5c39; }
 .favicon-verdict.mismatch{ background:#fff5f5; border:1px solid #fecaca; color:var(--critical); }
+body.dark-mode .favicon-verdict.mismatch{ background:#2a1212; border-color:#6b2424; }
 .favicon-verdict.unknown{ background:var(--bg-soft); border:1px solid var(--border); color:var(--text-1); }
 .favicon-status-icon{ font-size:1.1rem; margin-right:6px; }
 
 /* ==========================================
-   CONFIDENCE SCORE  (NEW)
+   CONFIDENCE / SCORE BLOCK
    ========================================== */
-.score-confidence-block{
-  display:flex;
-  gap:0;
-  align-items:stretch;
-  background:var(--bg-soft);
-  border-radius:var(--radius-md);
-  overflow:hidden;
-  border:1px solid var(--border);
-  margin-top:16px;
-}
-.score-half{
-  flex:1;
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  justify-content:center;
-  padding:18px 16px;
-  gap:4px;
-}
-.score-half + .score-half{
-  border-left:1px solid var(--border);
-}
-.score-half-label{
-  font-size:0.72rem;
-  font-weight:700;
-  letter-spacing:0.05em;
-  text-transform:uppercase;
-  color:var(--text-2);
-}
-.score-half-number{
-  font-family:var(--font-mono);
-  font-size:2.2rem;
-  font-weight:700;
-  line-height:1;
-  color:var(--text-0);
-}
-.score-half-sub{
-  font-size:0.78rem;
-  color:var(--text-2);
-}
-.confidence-bar-wrap{
-  width:100%;
-  margin-top:6px;
-}
-.confidence-bar-track{
-  height:5px;
-  border-radius:999px;
-  background:var(--border);
-  overflow:hidden;
-}
-.confidence-bar-fill{
-  height:100%;
-  border-radius:999px;
-  background:var(--accent);
-  transition:width .6s ease;
-}
+.score-confidence-block{ display:flex; gap:0; align-items:stretch; background:var(--bg-soft); border-radius:var(--radius-md); overflow:hidden; border:1px solid var(--border); margin-top:16px; }
+.score-half{ flex:1; display:flex; flex-direction:column; align-items:center; justify-content:center; padding:18px 16px; gap:4px; }
+.score-half + .score-half{ border-left:1px solid var(--border); }
+.score-half-label{ font-size:0.72rem; font-weight:700; letter-spacing:0.05em; text-transform:uppercase; color:var(--text-2); }
+.score-half-number{ font-family:var(--font-mono); font-size:2.2rem; font-weight:700; line-height:1; color:var(--text-0); }
+.score-half-sub{ font-size:0.78rem; color:var(--text-2); }
+.confidence-bar-wrap{ width:100%; margin-top:6px; }
+.confidence-bar-track{ height:5px; border-radius:999px; background:var(--border); overflow:hidden; }
+.confidence-bar-fill{ height:100%; border-radius:999px; background:var(--accent); transition:width .6s ease; }
 
 /* Risk dashboard */
 .risk-dashboard{ padding:24px; }
@@ -250,11 +224,13 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 .check-card:hover{ transform:translateY(-2px); box-shadow:0 4px 16px rgba(20,30,60,0.09); }
 .check-head{ display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
 .check-name{ font-weight:600; font-size:0.95rem; color:var(--text-0); }
-/* ✅ BUG FIX: Use .pass / .warn / .fail — matches JS className = 'check-status ' + status */
 .check-status{ font-size:0.72rem; font-weight:700; letter-spacing:0.02em; padding:2px 9px; border-radius:999px; }
 .check-status.pass{ background:#e8f5ec; color:var(--safe); }
 .check-status.warn{ background:#fcf0dc; color:var(--medium); }
 .check-status.fail{ background:#fbe3e2; color:var(--critical); }
+body.dark-mode .check-status.pass{ background:#102a18; }
+body.dark-mode .check-status.warn{ background:#332708; }
+body.dark-mode .check-status.fail{ background:#33100e; }
 .check-explanation{ font-size:0.88rem; color:var(--text-1); margin:0 0 10px; }
 .check-bar-track{ height:5px; border-radius:999px; background:var(--bg-soft); overflow:hidden; }
 .check-bar-fill{ height:100%; border-radius:999px; }
@@ -262,7 +238,7 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 /* Two-column layout */
 .two-col{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
 .ai-card, .rec-card{ padding:20px; }
-.ai-text{ font-size:0.96rem; color:var(--text-0); line-height:1.6; margin:0; }
+.ai-text{ font-size:0.96rem; color:var(--text-0); line-height:1.6; margin:0; white-space:pre-line; }
 .rec-list{ margin:0; padding:0; list-style:none; display:flex; flex-direction:column; gap:10px; }
 .rec-list li{ font-size:0.92rem; color:var(--text-0); padding-left:20px; position:relative; }
 .rec-list li::before{ content:'✓'; position:absolute; left:0; color:var(--accent); font-weight:700; }
@@ -282,26 +258,51 @@ code{ font-family:var(--font-mono); font-size:0.92em; color:var(--accent-ink); b
 .findings-list li::before{ content:'•'; position:absolute; left:0; color:var(--high); font-weight:700; }
 .findings-list li.benign::before{ content:'✓'; color:var(--safe); }
 
+/* ==========================================
+   SSL + GEO INTEL PANELS  (NEW)
+   ========================================== */
+.intel-grid{ display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+.intel-card{ padding:20px; }
+.intel-rows{ display:flex; flex-direction:column; gap:10px; }
+.intel-row{ display:flex; align-items:center; justify-content:space-between; gap:10px; padding:9px 0; border-bottom:1px solid var(--border); }
+.intel-row:last-child{ border-bottom:none; }
+.intel-row-label{ font-size:0.86rem; color:var(--text-2); }
+.intel-row-val{ font-size:0.9rem; font-weight:600; color:var(--text-0); font-family:var(--font-mono); text-align:right; }
+.intel-pill{ font-size:0.72rem; font-weight:700; padding:2px 9px; border-radius:999px; }
+.intel-pill.good{ background:#e8f5ec; color:var(--safe); }
+.intel-pill.bad{ background:#fbe3e2; color:var(--critical); }
+body.dark-mode .intel-pill.good{ background:#102a18; }
+body.dark-mode .intel-pill.bad{ background:#33100e; }
+.intel-note{ margin-top:14px; padding:10px 12px; border-radius:var(--radius-sm); background:var(--bg-soft); font-size:0.82rem; color:var(--text-1); }
+
+/* ==========================================
+   CHARTS  (NEW)
+   ========================================== */
+.chart-grid{ display:grid; grid-template-columns:1.3fr 1fr; gap:16px; }
+.chart-card{ padding:18px; display:flex; flex-direction:column; }
+.chart-card canvas{ width:100% !important; max-width:100%; height:auto !important; }
+.chart-legend{ display:flex; flex-wrap:wrap; gap:10px 16px; margin-top:14px; }
+.chart-legend-item{ display:flex; align-items:center; gap:6px; font-size:0.8rem; color:var(--text-1); }
+.chart-legend-dot{ width:9px; height:9px; border-radius:50%; flex:none; }
+
+/* ==========================================
+   EXPORT BAR  (NEW)
+   ========================================== */
+.export-bar{ display:flex; gap:10px; flex-wrap:wrap; padding:18px 20px; }
+.export-status{ font-size:0.85rem; color:var(--safe); margin-top:10px; padding:0 20px 4px; }
+
 .site-footer{ padding:32px 24px 48px; background:var(--bg-1); border-top:1px solid var(--border); }
 .footer-inner{ max-width:1180px; margin:0 auto; display:flex; flex-direction:column; align-items:center; gap:14px; }
 .footer-copy{ margin:0; font-size:0.82rem; color:var(--text-2); text-align:center; }
 .footer-made{ margin:0; font-size:0.82rem; color:var(--text-2); }
 .footer-socials{ display:flex; align-items:center; gap:20px; }
-.social-link{
-  display:flex; align-items:center; justify-content:center;
-  width:38px; height:38px; border-radius:50%;
-  border:1.5px solid var(--border);
-  color:var(--text-1);
-  background:var(--bg-soft);
-  transition:color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease;
-  text-decoration:none;
-}
+.social-link{ display:flex; align-items:center; justify-content:center; width:38px; height:38px; border-radius:50%; border:1.5px solid var(--border); color:var(--text-1); background:var(--bg-soft); transition:color .15s ease, border-color .15s ease, background .15s ease, transform .15s ease; text-decoration:none; }
 .social-link svg{ width:18px; height:18px; }
 .social-link:hover{ color:var(--accent); border-color:var(--accent); background:var(--accent-dim); transform:translateY(-2px); }
 
 a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid var(--accent); outline-offset:2px; }
 
-@media (max-width:840px){ .two-col, .favicon-compare{ grid-template-columns:1fr; } }
+@media (max-width:840px){ .two-col, .favicon-compare, .intel-grid, .chart-grid{ grid-template-columns:1fr; } }
 @media (max-width:600px){
   .hero{ padding:40px 18px 24px; }
   .panel{ padding:22px 18px; }
@@ -309,6 +310,9 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
   .btn{ width:100%; justify-content:center; }
   .score-confidence-block{ flex-direction:column; }
   .score-half + .score-half{ border-left:none; border-top:1px solid var(--border); }
+  .timeline-track{ min-width:560px; }
+  .export-bar{ flex-direction:column; }
+  .export-bar .btn{ width:100%; }
 }
 @media (prefers-reduced-motion:reduce){ .scan-bar-fill, .log-line{ animation:none; opacity:1; transform:none; width:100%; } }
 </style>
@@ -319,11 +323,14 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
   <div class="topbar-inner">
     <div class="brand">
       <span class="brand-glyph">🛡</span>
-      <span class="brand-name">PhishGuard<span class="accent">AI</span></span>
+      <span class="brand-name">PhishGuard<span class="accent">AI</span> <span style="font-size:0.7rem;font-weight:700;color:var(--text-2);">PRO</span></span>
     </div>
-    <div class="topbar-status">
-      <span class="status-dot"></span>
-      <span>Engine active</span>
+    <div class="topbar-right">
+      <div class="topbar-status">
+        <span class="status-dot"></span>
+        <span>Engine active</span>
+      </div>
+      <button class="theme-toggle" id="themeToggle" aria-label="Toggle dark mode" title="Toggle dark mode">🌙</button>
     </div>
   </div>
 </header>
@@ -333,17 +340,17 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
     <div class="hero-inner">
       <p class="eyebrow">CLIENT-SIDE URL HEURISTICS LAB</p>
       <h1 class="hero-title">Read a URL like an<br/><span class="accent">analyst</span> reads a threat report.</h1>
-      <p class="hero-sub">PhishGuard AI breaks a URL into the same lexical and structural signals real phishing filters examine — keywords, character noise, TLD reputation, brand lookalikes — and explains the verdict in plain language.</p>
+      <p class="hero-sub">PhishGuard AI Pro breaks a URL into 20+ lexical, structural and visual signals real phishing filters examine — typosquatting, punycode, entropy, SSL posture, geolocation — and explains the verdict in plain language.</p>
 
       <div class="disclaimer-strip" role="note">
         <span class="disclaimer-tag">EDUCATIONAL TOOL</span>
-        <p>This is a learning project, not a real security product. Every score is a local heuristic estimate in your browser. Domain age, WHOIS, and favicon data for unrecognized domains are <strong>simulated</strong>. Never use this as your sole basis for trusting a link.</p>
+        <p>This is a learning project, not a real security product. Every score is a local heuristic estimate computed entirely in your browser. WHOIS, SSL certificate detail, and IP geolocation for unrecognized domains are <strong>simulated</strong> for teaching purposes. Never use this as your sole basis for trusting a link.</p>
       </div>
 
       <div class="terminal" aria-hidden="true">
         <div class="terminal-bar"><span class="terminal-title">Live analysis log</span></div>
         <div class="terminal-body" id="terminalBody">
-          <p class="line">PhishGuard AI heuristics engine ready.</p>
+          <p class="line">PhishGuard AI Pro heuristics engine ready.</p>
           <p class="line">Awaiting target URL…</p>
         </div>
       </div>
@@ -354,7 +361,7 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
   <section class="panel analyze-panel" id="analyze">
     <div class="panel-head">
       <h2><span class="idx">01</span> URL Analysis</h2>
-      <p class="panel-desc">Paste a full URL (including <code>http://</code> or <code>https://</code>) to run the heuristics engine.</p>
+      <p class="panel-desc">Paste a full URL (including <code>http://</code> or <code>https://</code>), or scan a QR code, to run the heuristics engine.</p>
     </div>
     <div class="glass card input-card">
       <label for="urlInput" class="sr-only">URL to analyze</label>
@@ -363,16 +370,31 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
         <input type="text" id="urlInput" placeholder="https://example.com/login?verify=account" autocomplete="off" spellcheck="false"/>
       </div>
       <div class="button-row">
-        <button class="btn btn-primary" id="analyzeBtn"><span class="btn-icon">▶</span> Analyze URL</button>
-        <button class="btn btn-ghost" id="clearBtn">Clear</button>
+        <button class="btn btn-primary" id="analyzeBtn" type="button"><span class="btn-icon">▶</span> Analyze URL</button>
+        <button class="btn btn-ghost" id="clearBtn" type="button">Clear</button>
       </div>
       <p class="input-error hidden" id="inputError"></p>
       <div class="sample-row">
         <span class="sample-label">Try:</span>
-        <button class="chip" data-sample="https://www.wikipedia.org/wiki/Phishing">wikipedia.org</button>
-        <button class="chip" data-sample="http://paytm-verification-secure.tk/login?redirect=account">paytm-verification.tk</button>
-        <button class="chip" data-sample="https://g00gle-login.com.account-verify.xyz/signin">g00gle-login lookalike</button>
-        <button class="chip" data-sample="https://secure-paypa1.com/verify?user=123">paypa1 lookalike</button>
+        <button class="chip" type="button" data-sample="https://www.wikipedia.org/wiki/Phishing">wikipedia.org</button>
+        <button class="chip" type="button" data-sample="http://paytm-verification-secure.tk/login?redirect=account">paytm-verification.tk</button>
+        <button class="chip" type="button" data-sample="https://g00gle-login.com.account-verify.xyz/signin">g00gle-login lookalike</button>
+        <button class="chip" type="button" data-sample="https://secure-paypa1.com/verify?user=123">paypa1 lookalike</button>
+        <button class="chip" type="button" data-sample="https://xn--pypal-4ve.com/signin">punycode lookalike</button>
+        <button class="chip" type="button" data-sample="https://bit.ly/3xK9zP1">bit.ly shortener</button>
+        <button class="chip" type="button" data-sample="https://a8j3k1xq.xyz/secure@login.update.io">random entropy domain</button>
+      </div>
+
+      <!-- ✨ NEW: QR CODE SCANNER -->
+      <div class="qr-box">
+        <span style="font-size:1.6rem;">📷</span>
+        <div class="qr-box-text">
+          <strong>Scan a QR code instead</strong>
+          <span>Upload an image containing a QR code — we'll extract the URL and analyze it.</span>
+          <p class="qr-status hidden" id="qrStatus"></p>
+        </div>
+        <input type="file" id="qrFileInput" accept="image/*" hidden>
+        <button class="btn btn-ghost" id="qrUploadBtn" type="button">Upload QR Image</button>
       </div>
     </div>
   </section>
@@ -386,13 +408,23 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
   <!-- RESULTS -->
   <div id="resultsArea" class="hidden">
 
+    <!-- ✨ NEW: TIMELINE ANALYSIS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">02</span> Scan Timeline</h2>
+        <p class="panel-desc">The order these checks run in mirrors how a real phishing filter pipeline works.</p>
+      </div>
+      <div class="glass card timeline-wrap">
+        <div class="timeline-track" id="timelineTrack"></div>
+      </div>
+    </section>
+
     <!-- RISK SCORE + CONFIDENCE -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">02</span> Risk Assessment</h2>
+        <h2><span class="idx">03</span> Risk Assessment</h2>
       </div>
       <div class="glass card risk-dashboard">
-        <!-- Gauge -->
         <div class="risk-score-block">
           <div class="risk-gauge" aria-label="Risk gauge">
             <svg class="gauge-svg" viewBox="0 0 120 120">
@@ -411,7 +443,6 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
           </div>
         </div>
 
-        <!-- ✨ NEW: Risk Score + Confidence Score side-by-side -->
         <div class="score-confidence-block" id="scoreConfidenceBlock">
           <div class="score-half">
             <span class="score-half-label">Risk Score</span>
@@ -437,34 +468,71 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
       </div>
     </section>
 
-    <!-- ✨ NEW: FAVICON COMPARISON PANEL -->
+    <!-- FAVICON COMPARISON -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">03</span> Favicon Detection</h2>
-        <p class="panel-desc">Comparing the site's favicon against the brand it appears to impersonate. Legitimate sites use their own branding; phishing sites often borrow or omit favicons.</p>
+        <h2><span class="idx">04</span> Favicon Detection</h2>
+        <p class="panel-desc">Comparing the site's favicon against the brand it appears to impersonate.</p>
       </div>
       <div class="glass card favicon-panel">
         <div class="card-label"><span class="pulse-dot"></span> Visual Identity Check</div>
-        <div class="favicon-compare" id="faviconCompare">
-          <!-- Filled by JS -->
-        </div>
+        <div class="favicon-compare" id="faviconCompare"></div>
         <div class="favicon-verdict hidden" id="faviconVerdict"></div>
+      </div>
+    </section>
+
+    <!-- ✨ NEW: SSL + GEO INTELLIGENCE -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">05</span> SSL &amp; Network Intelligence</h2>
+        <p class="panel-desc">Certificate posture and simulated network origin — for teaching infrastructure-level red flags.</p>
+      </div>
+      <div class="intel-grid">
+        <div class="glass card intel-card">
+          <div class="card-label"><span class="pulse-dot"></span> SSL Certificate</div>
+          <div class="intel-rows" id="sslRows"></div>
+          <p class="intel-note" id="sslNote"></p>
+        </div>
+        <div class="glass card intel-card">
+          <div class="card-label"><span class="pulse-dot"></span> IP Geolocation (simulated)</div>
+          <div class="intel-rows" id="geoRows"></div>
+          <p class="intel-note">Hosting geography alone is not proof of malicious intent, but unusual hosting for a "local bank" or well-known brand is worth a second look.</p>
+        </div>
       </div>
     </section>
 
     <!-- CHECKS GRID -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">04</span> Heuristic Checks</h2>
+        <h2><span class="idx">06</span> Heuristic Checks</h2>
         <p class="panel-desc">Each signal is scored independently. A single flag does not mean the URL is malicious — context matters.</p>
       </div>
       <div class="checks-grid" id="checksGrid"></div>
     </section>
 
-    <!-- THREAT INTEL -->
+    <!-- ✨ NEW: CHARTS -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">05</span> Threat Intelligence</h2>
+        <h2><span class="idx">07</span> Risk Visualization</h2>
+        <p class="panel-desc">Animated breakdown of where this URL's risk score is coming from.</p>
+      </div>
+      <div class="chart-grid">
+        <div class="glass card chart-card">
+          <div class="card-label"><span class="pulse-dot"></span> Risk Contribution by Signal</div>
+          <canvas id="barChart" width="640" height="320"></canvas>
+        </div>
+        <div class="glass card chart-card">
+          <div class="card-label"><span class="pulse-dot"></span> Overall Threat Distribution</div>
+          <canvas id="donutChart" width="320" height="320"></canvas>
+          <div class="chart-legend" id="donutLegend"></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- THREAT INTEL DASHBOARD -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">08</span> Threat Intelligence Dashboard</h2>
         <p class="panel-desc">Simulated threat-database lookup for educational purposes.</p>
       </div>
       <div class="glass card" style="padding:20px">
@@ -479,7 +547,7 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
     <!-- AI ANALYST + RECOMMENDATIONS -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">06</span> Analysis &amp; Recommendations</h2>
+        <h2><span class="idx">09</span> Analysis &amp; Recommendations</h2>
       </div>
       <div class="two-col">
         <div class="glass card ai-card">
@@ -496,7 +564,7 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
     <!-- WHOIS -->
     <section class="panel">
       <div class="panel-head">
-        <h2><span class="idx">07</span> Domain Intelligence</h2>
+        <h2><span class="idx">10</span> Domain Intelligence</h2>
         <p class="panel-desc">Simulated WHOIS data — for teaching domain registration patterns only.</p>
       </div>
       <div class="glass card" style="padding:20px">
@@ -505,24 +573,39 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
       </div>
     </section>
 
+    <!-- ✨ NEW: EXPORT TOOLS -->
+    <section class="panel">
+      <div class="panel-head">
+        <h2><span class="idx">11</span> Export Report</h2>
+        <p class="panel-desc">Save this analysis for a portfolio writeup, classroom submission, or your own records.</p>
+      </div>
+      <div class="glass card">
+        <div class="export-bar">
+          <button class="btn btn-primary" id="exportJsonBtn" type="button">⬇ Download JSON Report</button>
+          <button class="btn btn-primary" id="exportPdfBtn" type="button">📄 Export PDF Report</button>
+          <button class="btn btn-ghost" id="copySummaryBtn" type="button">📋 Copy Summary</button>
+        </div>
+        <p class="export-status hidden" id="exportStatus"></p>
+      </div>
+    </section>
+
   </div><!-- /resultsArea -->
 </main>
 
 <footer class="site-footer">
   <div class="footer-inner">
-    <p class="footer-copy">PhishGuard AI — Educational project · Not a real security product · All data is heuristic/simulated</p>
+    <p class="footer-copy">PhishGuard AI Pro — Educational project · Not a real security product · All data is heuristic/simulated</p>
     <div class="footer-socials">
       <a href="https://www.instagram.com/itz.muthuu?igsh=MXZiNGhqNmpoNGU1bw==" target="_blank" rel="noopener" class="social-link" aria-label="Instagram">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.5" cy="6.5" r="1" fill="currentColor" stroke="none"/></svg>
       </a>
-<a href="https://www.linkedin.com/in/muthupriyan-s-b76698377" target="_blank" rel="noopener" class="social-link" aria-label="LinkedIn">
+      <a href="https://www.linkedin.com/in/muthupriyan-s-b76698377" target="_blank" rel="noopener" class="social-link" aria-label="LinkedIn">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M19 0h-14c-2.761 0-5 2.239-5 5v14c0 2.761 2.239 5 5 5h14c2.762 0 5-2.239 5-5v-14c0-2.761-2.238-5-5-5zm-11 19h-3v-11h3v11zm-1.5-12.268c-.966 0-1.75-.79-1.75-1.764s.784-1.764 1.75-1.764 1.75.79 1.75 1.764-.783 1.764-1.75 1.764zm13.5 12.268h-3v-5.604c0-1.337-.025-3.063-1.867-3.063-1.868 0-2.133 1.459-2.133 2.968v5.699h-3v-11h2.879v1.508h.041c.401-.761 1.379-1.563 2.846-1.563 3.043 0 3.604 2.002 3.604 4.604v6.451z"/></svg>
       </a>
       <a href="https://github.com/muthupriyan-dev" target="_blank" rel="noopener" class="social-link" aria-label="GitHub">
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.019 10.019 0 0022 12.017C22 6.484 17.522 2 12 2z"/></svg>
       </a>
       <a href="mailto:smuthupriyan020108@gmail.com" class="social-link" aria-label="Email">
-
         <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
       </a>
     </div>
@@ -530,13 +613,18 @@ a:focus-visible, button:focus-visible, input:focus-visible{ outline:2px solid va
   </div>
 </footer>
 
+<!-- External libs: QR decoding + PDF export (client-side only, no data leaves the browser) -->
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+
 <script>
 // ========================================================
-//  PHISHGUARD AI — HEURISTICS ENGINE
-//  Includes: Bug Fix, Favicon Detection, Confidence Score
+//  PHISHGUARD AI PRO — HEURISTICS ENGINE
 // ========================================================
 
-// ---------- KNOWN BRANDS for favicon comparison ----------
+/* ---------------------------------------------------------
+   SECTION A: STATIC REFERENCE DATA
+--------------------------------------------------------- */
 const BRAND_FAVICONS = {
   google:   { name:'Google',   emoji:'🔵', domain:'google.com',   color:'#4285F4' },
   paypal:   { name:'PayPal',   emoji:'🔷', domain:'paypal.com',   color:'#003087' },
@@ -549,7 +637,87 @@ const BRAND_FAVICONS = {
   wikipedia:{ name:'Wikipedia',emoji:'⚪', domain:'wikipedia.org',color:'#333333' },
 };
 
-// Detect which brand a suspicious URL is impersonating
+const URL_SHORTENERS = ['bit.ly','tinyurl.com','t.co','shorturl.at','rebrand.ly','goo.gl','ow.ly','is.gd','buff.ly','tiny.cc','cutt.ly','rb.gy'];
+
+const TIMELINE_STAGES = ['Parsing','DNS','Keywords','TLD','Typosquatting','Favicon','Threat Intel','Verdict'];
+
+/* ---------------------------------------------------------
+   SECTION B: SMALL UTILITY FUNCTIONS
+--------------------------------------------------------- */
+
+// Classic Levenshtein (edit distance) — used for typosquat detection
+function levenshtein(a, b) {
+  if (a === b) return 0;
+  const m = a.length, n = b.length;
+  if (m === 0) return n;
+  if (n === 0) return m;
+  const dp = Array.from({ length: m + 1 }, () => new Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) dp[i][j] = dp[i - 1][j - 1];
+      else dp[i][j] = 1 + Math.min(dp[i - 1][j], dp[i][j - 1], dp[i - 1][j - 1]);
+    }
+  }
+  return dp[m][n];
+}
+
+// Replace common character-substitution homoglyphs (0→o, 1→l, etc.) before comparing
+function normalizeHomoglyphs(str) {
+  return str
+    .replace(/0/g, 'o')
+    .replace(/1/g, 'l')
+    .replace(/5/g, 's')
+    .replace(/3/g, 'e')
+    .replace(/4/g, 'a')
+    .replace(/7/g, 't')
+    .replace(/8/g, 'b')
+    .replace(/9/g, 'g')
+    .replace(/rn/g, 'm')
+    .replace(/vv/g, 'w')
+    .replace(/cl/g, 'd');
+}
+
+// Shannon entropy of a string — higher = more "random looking"
+function shannonEntropy(str) {
+  if (!str.length) return 0;
+  const freq = {};
+  for (const ch of str) freq[ch] = (freq[ch] || 0) + 1;
+  let entropy = 0;
+  const len = str.length;
+  for (const ch in freq) {
+    const p = freq[ch] / len;
+    entropy -= p * Math.log2(p);
+  }
+  return entropy;
+}
+
+// Deterministic numeric seed from a string (used to keep simulated data consistent per-domain)
+function seedFromString(str) {
+  let seed = 0;
+  for (let i = 0; i < str.length; i++) seed = (seed * 31 + str.charCodeAt(i)) >>> 0;
+  return seed;
+}
+
+function fmtDate(d) {
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' });
+}
+
+function dateDiff(past, present) {
+  const diffMs = present - past;
+  const diffDay = Math.floor(diffMs / 86400000);
+  if (diffDay === 0) return 'Registered today';
+  if (diffDay < 30) return diffDay + ' day' + (diffDay !== 1 ? 's' : '');
+  const diffMon = Math.floor(diffDay / 30);
+  if (diffMon < 12) return diffMon + ' month' + (diffMon !== 1 ? 's' : '');
+  const diffYr = Math.floor(diffDay / 365);
+  return diffYr + ' year' + (diffYr !== 1 ? 's' : '');
+}
+
+/* ---------------------------------------------------------
+   SECTION C: BRAND / FAVICON HELPERS
+--------------------------------------------------------- */
 function detectImpersonatedBrand(hostname, fullUrl) {
   const h = hostname.toLowerCase() + ' ' + fullUrl.toLowerCase();
   for (const [key, brand] of Object.entries(BRAND_FAVICONS)) {
@@ -558,14 +726,111 @@ function detectImpersonatedBrand(hostname, fullUrl) {
   return null;
 }
 
-// Is the domain actually the legitimate one?
 function isLegitDomain(hostname, brandKey) {
   const legit = BRAND_FAVICONS[brandKey]?.domain;
   if (!legit) return false;
   return hostname === legit || hostname.endsWith('.' + legit);
 }
 
-// ---------- HEURISTICS ENGINE ----------
+/* ---------------------------------------------------------
+   SECTION D: NEW DETECTION MODULES
+--------------------------------------------------------- */
+
+// D1. Typosquatting detection via Levenshtein (edit) distance against known brand names.
+// Note: simple single/double-character substitutions (paypa1, g00gle, arnazon, rnicrosoft,
+// facebo0k, micros0ft) already land at edit-distance 1–2 from the real brand name, so raw
+// Levenshtein distance alone catches them without needing any extra homoglyph normalization.
+function detectTyposquat(hostname) {
+  const labels = hostname.split(/[.-]/).filter(l => l.length >= 4);
+  let best = null;
+  for (const label of labels) {
+    for (const [key, brand] of Object.entries(BRAND_FAVICONS)) {
+      if (label === key) continue; // exact match isn't a typo
+      const dist = levenshtein(label, key);
+      if (dist > 0 && dist <= 2) {
+        if (!best || dist < best.dist) best = { brand, key, dist, label };
+      }
+    }
+  }
+  return best;
+}
+
+// D2. Punycode (internationalized domain) detection
+function detectPunycode(hostname) {
+  return hostname.split('.').some(label => label.startsWith('xn--'));
+}
+
+// D3. URL shortener detection
+function detectShortener(hostname) {
+  return URL_SHORTENERS.some(s => hostname === s || hostname.endsWith('.' + s));
+}
+
+// D4. Suspicious character checks (returns an object of booleans/counts)
+function detectSuspiciousChars(rawUrl, hostname) {
+  const hasAtSymbol = /\/\/[^\/]*@/.test(rawUrl); // user:pass@host masking trick
+  const hyphenCount = (hostname.match(/-/g) || []).length;
+  const hasMultipleDots = (hostname.match(/\./g) || []).length > 4 || hostname.includes('..');
+  const encodedMatches = rawUrl.match(/%[0-9A-Fa-f]{2}/g) || [];
+  return {
+    hasAtSymbol,
+    hyphenCount,
+    hasMultipleDots,
+    encodedCount: encodedMatches.length,
+  };
+}
+
+// D5. Entropy / randomly-generated domain detection
+function detectEntropy(hostname, domainParts) {
+  const sld = (domainParts.length >= 2 ? domainParts[domainParts.length - 2] : hostname).replace(/[^a-z0-9]/gi, '');
+  const entropy = shannonEntropy(sld.toLowerCase());
+  const normalized = Math.min(entropy / Math.log2(36), 1); // 36 = a-z0-9
+  const randomnessScore = Math.round(normalized * 100);
+  const isLikelyRandom = randomnessScore >= 70 && sld.length >= 8;
+  return { sld, randomnessScore, isLikelyRandom };
+}
+
+// D6. Simulated SSL certificate info
+function getSSLInfo(hostname, isHTTPS, seed) {
+  if (!isHTTPS) {
+    return {
+      status: 'absent',
+      issuer: '—',
+      validFrom: '—',
+      validTo: '—',
+      explanation: 'No certificate detected — the connection is unencrypted (HTTP). Any data submitted, including passwords, can be intercepted in plaintext by anyone on the network path.',
+    };
+  }
+  const issuers = ["Let's Encrypt", 'DigiCert Inc', 'Sectigo Limited', 'GlobalSign nv-sa', 'GoDaddy Secure Certificate Authority'];
+  const issuer = issuers[seed % issuers.length];
+  const now = new Date();
+  const validFrom = new Date(now);
+  validFrom.setMonth(validFrom.getMonth() - (1 + (seed % 11)));
+  const validTo = new Date(validFrom);
+  validTo.setFullYear(validTo.getFullYear() + ((seed % 2) + 1));
+  return {
+    status: 'present',
+    issuer,
+    validFrom: fmtDate(validFrom) + ' (simulated)',
+    validTo: fmtDate(validTo) + ' (simulated)',
+    explanation: issuer === "Let's Encrypt"
+      ? "Let's Encrypt issues free certificates to any domain, including freshly-registered phishing domains, in minutes. HTTPS alone is not proof of legitimacy."
+      : 'A paid CA issued this certificate. Encryption is present, but a valid certificate only confirms identity of the domain owner — not their intent.',
+  };
+}
+
+// D7. Simulated IP geolocation
+function getGeoInfo(hostname, seed) {
+  const countries = ['United States', 'Germany', 'Netherlands', 'Singapore', 'Russia', 'Romania', 'India', 'Ireland', 'Japan', 'Brazil', 'Ukraine'];
+  const isps = ['Cloudflare, Inc.', 'Amazon Web Services', 'DigitalOcean LLC', 'OVH SAS', 'Google LLC', 'Hetzner Online GmbH', 'M247 Ltd', 'Namecheap Hosting'];
+  const country = countries[seed % countries.length];
+  const isp = isps[(seed * 3 + 7) % isps.length];
+  const asn = 'AS' + (10000 + ((seed * 37) % 50000));
+  return { country, isp, hostingProvider: isp, asn };
+}
+
+/* ---------------------------------------------------------
+   SECTION E: CORE ANALYSIS ENGINE
+--------------------------------------------------------- */
 function analyzeURL(rawUrl) {
   let parsed;
   try { parsed = new URL(rawUrl); }
@@ -575,174 +840,151 @@ function analyzeURL(rawUrl) {
   const fullUrl   = rawUrl.toLowerCase();
   const tld       = hostname.split('.').slice(-1)[0];
   const domainParts = hostname.split('.');
+  const seed = seedFromString(hostname);
 
   const suspiciousTLDs = ['tk','ml','ga','cf','gq','xyz','top','click','work','loan','online','site','icu','cyou','vip'];
   const phishKeywords  = ['verify','login','secure','account','update','confirm','banking','paypal','amazon','google','apple','microsoft','signin','password','reset','suspended','urgent','limited','alert'];
-  const homoglyphs     = ['rn','vv','0o','1l']; // only multi-char lookalike patterns
 
-  // Checks
+  // ----- Original checks -----
   const isHTTPS      = parsed.protocol === 'https:';
   const hasSuspTLD   = suspiciousTLDs.includes(tld);
   const urlLen       = rawUrl.length;
   const hasIPHost    = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
-  const subdomainDepth = domainParts.length - 2;
+  const subdomainDepth = Math.max(0, domainParts.length - 2);
   const keywordHits  = phishKeywords.filter(k => fullUrl.includes(k));
-  // Check for homoglyph patterns: digit-letter combos like g00gle, paypa1
   const hasHomoglyph = /[a-z]0[a-z]|[a-z]1[a-z]|rn|vv/.test(hostname);
   const hasRedirect  = fullUrl.includes('redirect') || fullUrl.includes('url=') || fullUrl.includes('return=');
-  const numSpecialChars = (hostname.match(/[-_]/g)||[]).length;
+  const numSpecialChars = (hostname.match(/[-_]/g) || []).length;
   const hasBrandInSubdomain = Object.keys(BRAND_FAVICONS).some(b => {
     const parts = domainParts.slice(0, -2);
     return parts.some(p => p.includes(b));
   });
 
-  // Score accumulation
+  // ----- New detection modules -----
+  const typosquat   = detectTyposquat(hostname);
+  const isPunycode  = detectPunycode(hostname);
+  const isShortener = detectShortener(hostname);
+  const suspChars   = detectSuspiciousChars(rawUrl, hostname);
+  const entropyInfo = detectEntropy(hostname, domainParts);
+
   let score = 0;
   const checks = [];
 
+  function pushCheck(name, status, weight, explanation) {
+    checks.push({ name, status, score: weight, explanation, weight });
+    score += weight;
+  }
+
   // 1. HTTPS
-  checks.push({
-    name:'HTTPS Protocol',
-    status: isHTTPS ? 'pass' : 'fail',
-    score: isHTTPS ? 0 : 20,
-    explanation: isHTTPS ? 'Connection is encrypted via HTTPS.' : 'No HTTPS — data sent in plaintext. High risk.',
-    weight: isHTTPS ? 0 : 20,
-  });
-  score += isHTTPS ? 0 : 20;
+  pushCheck('HTTPS Protocol', isHTTPS ? 'pass' : 'fail', isHTTPS ? 0 : 20,
+    isHTTPS ? 'Connection is encrypted via HTTPS.' : 'No HTTPS — data sent in plaintext. High risk.');
 
   // 2. Suspicious TLD
-  checks.push({
-    name:'TLD Reputation',
-    status: hasSuspTLD ? 'fail' : 'pass',
-    score: hasSuspTLD ? 25 : 0,
-    explanation: hasSuspTLD ? `".${tld}" is a free/high-abuse TLD frequently seen in phishing.` : `".${tld}" is not a known high-abuse TLD.`,
-    weight: hasSuspTLD ? 25 : 0,
-  });
-  score += hasSuspTLD ? 25 : 0;
+  pushCheck('TLD Reputation', hasSuspTLD ? 'fail' : 'pass', hasSuspTLD ? 25 : 0,
+    hasSuspTLD ? `".${tld}" is a free/high-abuse TLD frequently seen in phishing.` : `".${tld}" is not a known high-abuse TLD.`);
 
   // 3. IP host
-  checks.push({
-    name:'IP Address Host',
-    status: hasIPHost ? 'fail' : 'pass',
-    score: hasIPHost ? 30 : 0,
-    explanation: hasIPHost ? 'Domain is a raw IP — a classic phishing pattern.' : 'Domain uses a hostname, not a raw IP.',
-    weight: hasIPHost ? 30 : 0,
-  });
-  score += hasIPHost ? 30 : 0;
+  pushCheck('IP Address Host', hasIPHost ? 'fail' : 'pass', hasIPHost ? 30 : 0,
+    hasIPHost ? 'Domain is a raw IP — a classic phishing pattern.' : 'Domain uses a hostname, not a raw IP.');
 
   // 4. Keyword hits
   const kwScore = Math.min(keywordHits.length * 8, 30);
-  checks.push({
-    name:'Phishing Keywords',
-    status: keywordHits.length === 0 ? 'pass' : keywordHits.length <= 2 ? 'warn' : 'fail',
-    score: kwScore,
-    explanation: keywordHits.length === 0 ? 'No phishing-related keywords found.' : `Found: ${keywordHits.slice(0,4).join(', ')}`,
-    weight: kwScore,
-  });
-  score += kwScore;
+  pushCheck('Phishing Keywords', keywordHits.length === 0 ? 'pass' : keywordHits.length <= 2 ? 'warn' : 'fail', kwScore,
+    keywordHits.length === 0 ? 'No phishing-related keywords found.' : `Found: ${keywordHits.slice(0, 4).join(', ')}`);
 
   // 5. URL length
   const lenScore = urlLen > 100 ? 15 : urlLen > 60 ? 7 : 0;
-  checks.push({
-    name:'URL Length',
-    status: urlLen > 100 ? 'fail' : urlLen > 60 ? 'warn' : 'pass',
-    score: lenScore,
-    explanation: `${urlLen} chars. ${urlLen > 100 ? 'Very long URLs often conceal malicious paths.' : urlLen > 60 ? 'Moderately long.' : 'Length looks normal.'}`,
-    weight: lenScore,
-  });
-  score += lenScore;
+  pushCheck('URL Length', urlLen > 100 ? 'fail' : urlLen > 60 ? 'warn' : 'pass', lenScore,
+    `${urlLen} chars. ${urlLen > 100 ? 'Very long URLs often conceal malicious paths.' : urlLen > 60 ? 'Moderately long.' : 'Length looks normal.'}`);
 
   // 6. Subdomain depth
   const subScore = subdomainDepth > 3 ? 20 : subdomainDepth > 1 ? 10 : 0;
-  checks.push({
-    name:'Subdomain Depth',
-    status: subdomainDepth > 3 ? 'fail' : subdomainDepth > 1 ? 'warn' : 'pass',
-    score: subScore,
-    explanation: `${subdomainDepth} subdomain level(s). ${subdomainDepth > 2 ? 'Deep subdomains can mask the real domain.' : 'Looks normal.'}`,
-    weight: subScore,
-  });
-  score += subScore;
+  pushCheck('Subdomain Depth', subdomainDepth > 3 ? 'fail' : subdomainDepth > 1 ? 'warn' : 'pass', subScore,
+    `${subdomainDepth} subdomain level(s). ${subdomainDepth > 2 ? 'Deep subdomains can mask the real domain.' : 'Looks normal.'}`);
 
-  // 7. Homoglyphs
-  checks.push({
-    name:'Homoglyph Detection',
-    status: hasHomoglyph ? 'warn' : 'pass',
-    score: hasHomoglyph ? 15 : 0,
-    explanation: hasHomoglyph ? 'Hostname contains characters that may mimic letters (e.g. 0→o, 1→l).' : 'No obvious character substitutions detected.',
-    weight: hasHomoglyph ? 15 : 0,
-  });
-  score += hasHomoglyph ? 15 : 0;
+  // 7. Homoglyphs (legacy quick pattern check)
+  pushCheck('Homoglyph Detection', hasHomoglyph ? 'warn' : 'pass', hasHomoglyph ? 15 : 0,
+    hasHomoglyph ? 'Hostname contains characters that may mimic letters (e.g. 0→o, 1→l).' : 'No obvious character substitutions detected.');
 
   // 8. Brand in subdomain
-  checks.push({
-    name:'Brand in Subdomain',
-    status: hasBrandInSubdomain ? 'fail' : 'pass',
-    score: hasBrandInSubdomain ? 25 : 0,
-    explanation: hasBrandInSubdomain ? 'A known brand name appears in the subdomain — classic spoofing tactic.' : 'No known brand found embedded in the subdomain.',
-    weight: hasBrandInSubdomain ? 25 : 0,
-  });
-  score += hasBrandInSubdomain ? 25 : 0;
+  pushCheck('Brand in Subdomain', hasBrandInSubdomain ? 'fail' : 'pass', hasBrandInSubdomain ? 25 : 0,
+    hasBrandInSubdomain ? 'A known brand name appears in the subdomain — classic spoofing tactic.' : 'No known brand found embedded in the subdomain.');
 
   // 9. Open redirect
-  checks.push({
-    name:'Open Redirect',
-    status: hasRedirect ? 'warn' : 'pass',
-    score: hasRedirect ? 12 : 0,
-    explanation: hasRedirect ? 'URL contains redirect parameters, which can chain users to malicious destinations.' : 'No redirect chaining parameters found.',
-    weight: hasRedirect ? 12 : 0,
-  });
-  score += hasRedirect ? 12 : 0;
+  pushCheck('Open Redirect', hasRedirect ? 'warn' : 'pass', hasRedirect ? 12 : 0,
+    hasRedirect ? 'URL contains redirect parameters, which can chain users to malicious destinations.' : 'No redirect chaining parameters found.');
 
   // 10. Special chars in host
   const specScore = numSpecialChars > 3 ? 15 : numSpecialChars > 1 ? 7 : 0;
-  checks.push({
-    name:'Special Chars in Host',
-    status: numSpecialChars > 3 ? 'fail' : numSpecialChars > 1 ? 'warn' : 'pass',
-    score: specScore,
-    explanation: `${numSpecialChars} hyphens/underscores. ${numSpecialChars > 2 ? 'Excessive special chars often found in generated phishing domains.' : 'Within normal range.'}`,
-    weight: specScore,
-  });
-  score += specScore;
+  pushCheck('Special Chars in Host', numSpecialChars > 3 ? 'fail' : numSpecialChars > 1 ? 'warn' : 'pass', specScore,
+    `${numSpecialChars} hyphens/underscores. ${numSpecialChars > 2 ? 'Excessive special chars often found in generated phishing domains.' : 'Within normal range.'}`);
 
-  // 11. Excessive query parameters (phishing URLs often chain many params)
+  // 11. Query parameters
   const paramCount = [...parsed.searchParams].length;
   const paramScore = paramCount > 5 ? 12 : paramCount > 2 ? 5 : 0;
-  checks.push({
-    name:'Query Parameters',
-    status: paramCount > 5 ? 'fail' : paramCount > 2 ? 'warn' : 'pass',
-    score: paramScore,
-    explanation: paramCount === 0 ? 'No query parameters.' : `${paramCount} parameter(s) found. ${paramCount > 5 ? 'Excessive params often used to obscure phishing redirects.' : paramCount > 2 ? 'Moderate number of params — worth noting.' : 'Normal range.'}`,
-    weight: paramScore,
-  });
-  score += paramScore;
+  pushCheck('Query Parameters', paramCount > 5 ? 'fail' : paramCount > 2 ? 'warn' : 'pass', paramScore,
+    paramCount === 0 ? 'No query parameters.' : `${paramCount} parameter(s) found. ${paramCount > 5 ? 'Excessive params often used to obscure phishing redirects.' : paramCount > 2 ? 'Moderate number of params — worth noting.' : 'Normal range.'}`);
+
+  // 12. ✨ Typosquatting (Levenshtein + homoglyph)
+  pushCheck('Typosquatting Detection', typosquat ? 'fail' : 'pass', typosquat ? 30 : 0,
+    typosquat
+      ? `"${typosquat.label}" is ${typosquat.dist} character${typosquat.dist > 1 ? 's' : ''} away from "${typosquat.key}" (${typosquat.brand.name}) — a classic lookalike substitution.`
+      : 'No close character-edit matches to known brand names found.');
+
+  // 13. ✨ Punycode
+  pushCheck('Punycode (IDN) Domain', isPunycode ? 'fail' : 'pass', isPunycode ? 20 : 0,
+    isPunycode
+      ? 'Hostname uses "xn--" punycode encoding. Punycode lets attackers register domains that render as near-identical Unicode lookalikes of trusted brand names in the address bar.'
+      : 'No punycode (internationalized domain) encoding detected.');
+
+  // 14. ✨ URL shortener
+  pushCheck('URL Shortener', isShortener ? 'warn' : 'pass', isShortener ? 15 : 0,
+    isShortener
+      ? 'This is a known URL-shortening service. The real destination is hidden until the link is clicked — attackers use shorteners to bypass blocklists and disguise malicious links.'
+      : 'Not a known URL-shortening service.');
+
+  // 15. ✨ "@" symbol masking
+  pushCheck('"@" Symbol Masking', suspChars.hasAtSymbol ? 'fail' : 'pass', suspChars.hasAtSymbol ? 25 : 0,
+    suspChars.hasAtSymbol
+      ? 'URL contains an "@" before the host. Browsers ignore everything before "@", so attackers use this to display a trusted-looking prefix while actually navigating to a different host.'
+      : 'No "@" masking trick detected.');
+
+  // 16. ✨ Multiple / malformed dots
+  pushCheck('Multiple Dots Pattern', suspChars.hasMultipleDots ? 'warn' : 'pass', suspChars.hasMultipleDots ? 10 : 0,
+    suspChars.hasMultipleDots
+      ? 'Hostname has an unusually high number of dots or consecutive dots — often used to bury the real domain deep in a subdomain chain.'
+      : 'Dot pattern in hostname looks normal.');
+
+  // 17. ✨ Encoded characters
+  pushCheck('Encoded Characters', suspChars.encodedCount > 2 ? 'warn' : 'pass', suspChars.encodedCount > 2 ? 10 : 0,
+    suspChars.encodedCount > 0
+      ? `${suspChars.encodedCount} percent-encoded sequence(s) found (e.g. %20, %2F, %3D). Heavy encoding can hide suspicious characters from a quick visual scan.`
+      : 'No percent-encoded characters found.');
+
+  // 18. ✨ Entropy / randomness
+  pushCheck('Domain Entropy (Randomness)', entropyInfo.isLikelyRandom ? 'warn' : 'pass', entropyInfo.isLikelyRandom ? 20 : 0,
+    `Randomness score: ${entropyInfo.randomnessScore}/100 for "${entropyInfo.sld}". ${entropyInfo.isLikelyRandom ? 'High entropy + length resembles algorithmically generated domains (DGA) used by malware and disposable phishing infrastructure.' : 'Domain name looks like ordinary human-chosen text, not randomly generated.'}`);
 
   score = Math.min(Math.round(score), 100);
 
-  // ---------- CONFIDENCE SCORE ----------
-  // Confidence = how many heuristics fired with data (more signals = more confident)
+  // ----- Confidence score -----
   const signalsFired = checks.filter(c => c.weight > 0).length;
   const totalSignals = checks.length;
-  // More signals fired = more confident in verdict. Also: extreme scores = higher confidence.
   let baseConfidence = Math.round((signalsFired / totalSignals) * 70);
-  // If score is very high or very low, bump confidence
   if (score >= 75 || score <= 10) baseConfidence += 20;
   else if (score >= 55 || score <= 25) baseConfidence += 10;
   const confidence = Math.min(Math.max(baseConfidence, 35), 97);
 
-  // ---------- FAVICON DATA ----------
+  // ----- Favicon -----
   const impersonated = detectImpersonatedBrand(hostname, fullUrl);
   const isLegit = impersonated ? isLegitDomain(hostname, impersonated.key) : false;
+  const faviconData = { impersonated, isLegit, suspectDomain: hostname, canFetchSuspect: false };
 
-  // Simulated favicon URL (real Google favicon service for legit domains only)
-  const faviconData = {
-    impersonated,
-    isLegit,
-    suspectDomain: hostname,
-    // For educational display only — real fetch not attempted for suspected phishing sites
-    canFetchSuspect: false,
-  };
+  // ----- SSL + Geo -----
+  const sslInfo = getSSLInfo(hostname, isHTTPS, seed);
+  const geoInfo = getGeoInfo(hostname, seed);
 
-  // ---------- RISK LEVEL ----------
+  // ----- Risk level -----
   let riskLevel, riskColor, summary;
   if (score < 15)      { riskLevel='SAFE';     riskColor='var(--safe)';     summary='No significant risk signals detected. This URL appears legitimate based on our heuristics.'; }
   else if (score < 35) { riskLevel='LOW';       riskColor='var(--low)';      summary='Minor signals present. Likely safe, but verify the domain before entering credentials.'; }
@@ -750,92 +992,114 @@ function analyzeURL(rawUrl) {
   else if (score < 75) { riskLevel='HIGH';      riskColor='var(--high)';     summary='Strong phishing indicators present. Do not enter personal information on this site.'; }
   else                 { riskLevel='CRITICAL';  riskColor='var(--critical)'; summary='Multiple critical phishing signals detected. This URL is highly suspicious.'; }
 
-  // WHOIS (simulated) — realistic date-based generation
+  // ----- WHOIS (simulated) -----
   const now = new Date();
-
-  function fmtDate(d) {
-    return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric' });
-  }
-  function dateDiff(past, present) {
-    const diffMs  = present - past;
-    const diffDay = Math.floor(diffMs / 86400000);
-    if (diffDay === 0) return 'Registered today';
-    if (diffDay < 30)  return diffDay + ' day' + (diffDay !== 1 ? 's' : '');
-    const diffMon = Math.floor(diffDay / 30);
-    if (diffMon < 12)  return diffMon + ' month' + (diffMon !== 1 ? 's' : '');
-    const diffYr  = Math.floor(diffDay / 365);
-    return diffYr + ' year' + (diffYr !== 1 ? 's' : '');
-  }
-
   let createdDate, expiresDate;
   if (hasSuspTLD || hasIPHost) {
-    // Newly registered — always show today
-    createdDate = new Date(now);
-    createdDate.setHours(0,0,0,0);
-    expiresDate = new Date(createdDate);
-    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
-  } else if (subdomainDepth > 2 || hasBrandInSubdomain) {
-    // Suspicious — registered 7 to 14 days ago
+    createdDate = new Date(now); createdDate.setHours(0,0,0,0);
+    expiresDate = new Date(createdDate); expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+  } else if (subdomainDepth > 2 || hasBrandInSubdomain || typosquat) {
     const daysAgo = 7 + Math.floor(Math.abs(hostname.length % 8));
-    createdDate = new Date(now - daysAgo * 86400000);
-    createdDate.setHours(0,0,0,0);
-    expiresDate = new Date(createdDate);
-    expiresDate.setFullYear(expiresDate.getFullYear() + 1);
+    createdDate = new Date(now - daysAgo * 86400000); createdDate.setHours(0,0,0,0);
+    expiresDate = new Date(createdDate); expiresDate.setFullYear(expiresDate.getFullYear() + 1);
   } else {
-    // Legitimate-looking — older domain, seeded by hostname for consistency
-    const seed    = hostname.split('').reduce((a,c) => a + c.charCodeAt(0), 0);
-    const yearsOld = 4 + (seed % 14);          // 4–17 years old
-    createdDate   = new Date(now);
+    const yearsOld = 4 + (seed % 14);
+    createdDate = new Date(now);
     createdDate.setFullYear(createdDate.getFullYear() - yearsOld);
     createdDate.setMonth(seed % 12);
     createdDate.setDate(1 + (seed % 28));
-    expiresDate   = new Date(now);
+    expiresDate = new Date(now);
     expiresDate.setFullYear(expiresDate.getFullYear() + 1 + (seed % 3));
   }
-
-  const domainAge  = dateDiff(createdDate, now);
-  const registrar  = hasSuspTLD ? 'Freenom (free registrar)' : 'GoDaddy / Namecheap';
+  const domainAge = dateDiff(createdDate, now);
+  const registrar = hasSuspTLD ? 'Freenom (free registrar)' : 'GoDaddy / Namecheap';
   const whois = {
-    'Registrant':  hasSuspTLD || hasIPHost ? 'REDACTED FOR PRIVACY' : 'Public organization',
-    'Registrar':   registrar,
-    'Created':     fmtDate(createdDate) + ' (simulated)',
-    'Expires':     fmtDate(expiresDate) + ' (simulated)',
-    'Domain Age':  domainAge,
-    'HTTPS cert':  isHTTPS ? 'Present' : 'Absent',
+    'Registrant': hasSuspTLD || hasIPHost ? 'REDACTED FOR PRIVACY' : 'Public organization',
+    'Registrar': registrar,
+    'Created': fmtDate(createdDate) + ' (simulated)',
+    'Expires': fmtDate(expiresDate) + ' (simulated)',
+    'Domain Age': domainAge,
+    'HTTPS cert': isHTTPS ? 'Present' : 'Absent',
   };
 
-  // Threat intel (simulated)
+  // ----- Threat intelligence dashboard -----
+  const reputationScore = Math.max(0, 100 - score);
+  const threatCategory = score >= 75 ? 'Confirmed-style Phishing Pattern'
+    : score >= 55 ? 'High-Risk Lookalike'
+    : score >= 35 ? 'Suspicious / Needs Review'
+    : score >= 15 ? 'Low-Risk Anomaly'
+    : 'No Threat Pattern Matched';
+  const communityConfidence = Math.min(97, Math.max(40, confidence - 3 + (seed % 7)));
+  const simulatedMalwareHits = hasSuspTLD || hasIPHost || typosquat ? 8 + (seed % 40) : score > 30 ? (seed % 5) : 0;
+
   const tiStats = [
-    { val: hasSuspTLD || hasIPHost ? '12' : '0', lab:'Reported Incidents' },
-    { val: keywordHits.length > 2 ? 'High' : keywordHits.length > 0 ? 'Medium' : 'Low', lab:'Keyword Match Level' },
-    { val: score > 60 ? 'Yes' : 'No', lab:'Blocklist Match' },
-    { val: confidence + '%', lab:'Heuristic Confidence' },
+    { val: simulatedMalwareHits, lab: 'Reported Incidents' },
+    { val: keywordHits.length > 2 ? 'High' : keywordHits.length > 0 ? 'Medium' : 'Low', lab: 'Keyword Match Level' },
+    { val: score > 60 ? 'Yes' : 'No', lab: 'Blocklist Match' },
+    { val: confidence + '%', lab: 'Heuristic Confidence' },
+    { val: reputationScore, lab: 'Reputation Score' },
+    { val: communityConfidence + '%', lab: 'Community Confidence' },
   ];
   const tiFindings = [];
-  if (hasIPHost)    tiFindings.push({ text:'IP-based hosting — typical in fast-flux phishing networks', benign:false });
-  if (hasSuspTLD)   tiFindings.push({ text:`Free TLD ".${tld}" heavily abused in phishing campaigns`, benign:false });
-  if (hasBrandInSubdomain) tiFindings.push({ text:'Brand name embedded in subdomain to appear legitimate', benign:false });
-  if (keywordHits.length > 2) tiFindings.push({ text:`High-risk keyword density: ${keywordHits.join(', ')}`, benign:false });
-  if (isHTTPS)      tiFindings.push({ text:'HTTPS present — necessary but not sufficient for safety', benign:true });
-  if (!hasSuspTLD && !hasIPHost && score < 20) tiFindings.push({ text:'No active threat database matches (simulated)', benign:true });
+  if (hasIPHost) tiFindings.push({ text: 'IP-based hosting — typical in fast-flux phishing networks', benign: false });
+  if (hasSuspTLD) tiFindings.push({ text: `Free TLD ".${tld}" heavily abused in phishing campaigns`, benign: false });
+  if (hasBrandInSubdomain) tiFindings.push({ text: 'Brand name embedded in subdomain to appear legitimate', benign: false });
+  if (typosquat) tiFindings.push({ text: `Typosquat of "${typosquat.brand.name}" detected via edit-distance analysis`, benign: false });
+  if (isPunycode) tiFindings.push({ text: 'Punycode encoding can render as a deceptive Unicode lookalike', benign: false });
+  if (isShortener) tiFindings.push({ text: 'URL shortener hides the true destination domain', benign: false });
+  if (entropyInfo.isLikelyRandom) tiFindings.push({ text: 'Domain name entropy resembles algorithmically generated (DGA) infrastructure', benign: false });
+  if (keywordHits.length > 2) tiFindings.push({ text: `High-risk keyword density: ${keywordHits.join(', ')}`, benign: false });
+  if (isHTTPS) tiFindings.push({ text: 'HTTPS present — necessary but not sufficient for safety', benign: true });
+  if (!hasSuspTLD && !hasIPHost && score < 20) tiFindings.push({ text: 'No active threat database matches (simulated)', benign: true });
 
-  // Recommendations
+  // ----- Recommendations -----
   const recs = [];
-  if (!isHTTPS)      recs.push('Never submit passwords or payment info over HTTP.');
-  if (hasSuspTLD)    recs.push(`Avoid clicking links on ".${tld}" domains — high abuse rate.`);
+  if (!isHTTPS) recs.push('Never submit passwords or payment info over HTTP.');
+  if (hasSuspTLD) recs.push(`Avoid clicking links on ".${tld}" domains — high abuse rate.`);
   if (hasBrandInSubdomain) recs.push('The brand name you see may be a subdomain, not the real domain.');
+  if (typosquat) recs.push(`Double-check the spelling — this looks like a 1–2 character edit away from "${typosquat.brand.domain}".`);
+  if (isPunycode) recs.push('Hover or inspect the raw URL — punycode domains can visually impersonate trusted brands.');
+  if (isShortener) recs.push('Expand the shortened link with a preview tool before clicking, or ask the sender for the full URL.');
   if (keywordHits.length) recs.push('Urgency words like "verify" and "secure" are manipulation tactics.');
-  if (hasRedirect)   recs.push('Redirect parameters can chain you through to a malicious site.');
-  recs.push('When in doubt, navigate directly to the brand\'s official website.');
-  recs.push('Use a password manager — it won\'t autofill on fake domains.');
+  if (hasRedirect) recs.push('Redirect parameters can chain you through to a malicious site.');
+  if (entropyInfo.isLikelyRandom) recs.push('Randomly-generated domain names are a common trait of malware command-and-control infrastructure.');
+  recs.push("When in doubt, navigate directly to the brand's official website.");
+  recs.push("Use a password manager — it won't autofill on fake domains.");
 
-  // AI analyst text
-  const aiText = `This URL scores ${score}/100 on our phishing risk scale with ${confidence}% heuristic confidence. ${summary} The analysis flagged ${signalsFired} of ${totalSignals} possible risk signals. Key concerns: ${checks.filter(c=>c.weight>0).map(c=>c.name).slice(0,3).join(', ') || 'none'}. ${impersonated ? `The URL appears to be impersonating ${impersonated.brand.name} — the favicon comparison above reveals the visual identity mismatch.` : ''} Always corroborate with a second security tool before trusting any URL.`;
+  // ----- AI analyst summary (upgraded, multi-part) -----
+  const triggeredNames = checks.filter(c => c.weight > 0).map(c => c.name);
+  const whyDangerous = score < 15
+    ? 'This URL does not show meaningful danger signals under our heuristic model.'
+    : `This URL is concerning primarily because of: ${triggeredNames.slice(0, 4).join(', ')}${triggeredNames.length > 4 ? `, and ${triggeredNames.length - 4} more signal(s)` : ''}.`;
+  const whatToDo = score >= 55
+    ? 'Do not enter credentials, OTPs, or payment details. Close the tab and navigate to the official site directly if you need to log in.'
+    : score >= 35
+    ? 'Treat with caution — verify the sender, hover over the link, and compare the domain letter-by-letter with the real brand domain before proceeding.'
+    : 'No urgent action needed, but keep practicing the habit of checking URLs before entering sensitive information.';
 
-  return { score, confidence, riskLevel, riskColor, summary, checks, hostname, whois, tiStats, tiFindings, recs, aiText, faviconData };
+  const aiText = `Risk score: ${score}/100 · Confidence: ${confidence}% · Category: ${threatCategory}
+
+${summary} The engine evaluated ${signalsFired} of ${totalSignals} possible risk signals as active.
+
+Why this URL is flagged this way:
+${whyDangerous}${impersonated ? ` The URL also appears to reference ${impersonated.brand.name} — see the favicon comparison panel for a visual identity check.` : ''}
+
+What you should do:
+${whatToDo}
+
+Always corroborate with a second, independent security tool before trusting or distrusting any URL.`;
+
+  return {
+    score, confidence, riskLevel, riskColor, summary, checks, hostname, whois,
+    tiStats, tiFindings, recs, aiText, faviconData, sslInfo, geoInfo,
+    threatCategory, reputationScore, communityConfidence,
+    typosquat, isPunycode, isShortener, entropyInfo, rawUrl, urlLen,
+  };
 }
 
-// ---------- RENDER ----------
+/* ---------------------------------------------------------
+   SECTION F: RENDER FUNCTIONS
+--------------------------------------------------------- */
 function renderFavicon(result) {
   const { faviconData, hostname } = result;
   const compare = document.getElementById('faviconCompare');
@@ -844,7 +1108,6 @@ function renderFavicon(result) {
   verdict.classList.add('hidden');
 
   if (!faviconData.impersonated) {
-    // No brand detected — show neutral state
     compare.innerHTML = `
       <div class="favicon-box" style="grid-column:1/-1; flex-direction:row; gap:16px; text-align:left;">
         <div class="favicon-img-wrap"><span class="fav-placeholder">🌐</span></div>
@@ -859,10 +1122,9 @@ function renderFavicon(result) {
     return;
   }
 
-  const { brand, key } = faviconData.impersonated;
+  const { brand } = faviconData.impersonated;
   const realFaviconUrl = `https://www.google.com/s2/favicons?domain=${brand.domain}&sz=64`;
 
-  // Fix 3: If this IS the legitimate domain, show OFFICIAL — no VS comparison needed
   if (faviconData.isLegit) {
     compare.innerHTML = `
       <div class="favicon-box real" style="grid-column:1/-1; flex-direction:row; gap:16px; text-align:left;">
@@ -882,7 +1144,6 @@ function renderFavicon(result) {
     return;
   }
 
-  // Suspect domain impersonating a brand — show VS comparison
   const realBox = document.createElement('div');
   realBox.className = 'favicon-box real';
   realBox.innerHTML = `
@@ -917,6 +1178,140 @@ function renderFavicon(result) {
   verdict.classList.remove('hidden');
 }
 
+function renderSSL(result) {
+  const { sslInfo } = result;
+  const rows = document.getElementById('sslRows');
+  const isPresent = sslInfo.status === 'present';
+  rows.innerHTML = `
+    <div class="intel-row"><span class="intel-row-label">Status</span><span class="intel-pill ${isPresent ? 'good' : 'bad'}">${isPresent ? 'CERTIFICATE PRESENT' : 'NO CERTIFICATE'}</span></div>
+    <div class="intel-row"><span class="intel-row-label">Issuer</span><span class="intel-row-val">${sslInfo.issuer}</span></div>
+    <div class="intel-row"><span class="intel-row-label">Valid From</span><span class="intel-row-val">${sslInfo.validFrom}</span></div>
+    <div class="intel-row"><span class="intel-row-label">Valid To</span><span class="intel-row-val">${sslInfo.validTo}</span></div>`;
+  document.getElementById('sslNote').textContent = sslInfo.explanation;
+}
+
+function renderGeo(result) {
+  const { geoInfo } = result;
+  const rows = document.getElementById('geoRows');
+  rows.innerHTML = `
+    <div class="intel-row"><span class="intel-row-label">Country</span><span class="intel-row-val">${geoInfo.country}</span></div>
+    <div class="intel-row"><span class="intel-row-label">ISP</span><span class="intel-row-val">${geoInfo.isp}</span></div>
+    <div class="intel-row"><span class="intel-row-label">Hosting Provider</span><span class="intel-row-val">${geoInfo.hostingProvider}</span></div>
+    <div class="intel-row"><span class="intel-row-label">ASN</span><span class="intel-row-val">${geoInfo.asn}</span></div>`;
+}
+
+function renderTimeline(activeIndex, done) {
+  const track = document.getElementById('timelineTrack');
+  track.innerHTML = TIMELINE_STAGES.map((stage, i) => {
+    let cls = '';
+    if (done) cls = 'done';
+    else if (i < activeIndex) cls = 'done';
+    else if (i === activeIndex) cls = 'active';
+    const icon = cls === 'done' ? '✓' : (i + 1);
+    return `
+      <div class="timeline-step ${cls}">
+        <div class="line"></div>
+        <div class="dot">${icon}</div>
+        <div class="label">${stage}</div>
+      </div>`;
+  }).join('');
+}
+
+/* ----- Charts (lightweight, native canvas — no external chart library) ----- */
+function drawBarChart(canvasId, items) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const maxVal = Math.max(...items.map(i => i.value), 1);
+  const padding = 36;
+  const chartW = W - padding * 2;
+  const chartH = H - 60;
+  const barGap = 10;
+  const barW = (chartW / items.length) - barGap;
+
+  let progress = 0;
+  function frame() {
+    progress += 0.06;
+    if (progress > 1) progress = 1;
+    ctx.clearRect(0, 0, W, H);
+    items.forEach((item, i) => {
+      const x = padding + i * (barW + barGap);
+      const barH = (item.value / maxVal) * chartH * progress;
+      const y = H - 40 - barH;
+      ctx.fillStyle = item.color;
+      ctx.beginPath();
+      if (ctx.roundRect) ctx.roundRect(x, y, barW, barH, 5);
+      else ctx.rect(x, y, barW, barH);
+      ctx.fill();
+      ctx.fillStyle = '#8a93a6';
+      ctx.font = '11px Inter, sans-serif';
+      ctx.textAlign = 'center';
+      const label = item.label.length > 11 ? item.label.slice(0, 10) + '…' : item.label;
+      ctx.fillText(label, x + barW / 2, H - 22);
+      if (progress >= 0.98) {
+        ctx.fillStyle = '#1b2233';
+        ctx.font = '11px JetBrains Mono, monospace';
+        ctx.fillText(Math.round(item.value), x + barW / 2, y - 6);
+      }
+    });
+    if (progress < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+}
+
+function drawDonutChart(canvasId, segments, legendId) {
+  const canvas = document.getElementById(canvasId);
+  const ctx = canvas.getContext('2d');
+  const W = canvas.width, H = canvas.height;
+  const cx = W / 2, cy = H / 2, r = Math.min(W, H) / 2 - 16, inner = r * 0.58;
+  const total = segments.reduce((a, s) => a + s.value, 0) || 1;
+
+  let progress = 0;
+  function frame() {
+    progress += 0.05;
+    if (progress > 1) progress = 1;
+    ctx.clearRect(0, 0, W, H);
+    let startAngle = -Math.PI / 2;
+    segments.forEach(seg => {
+      const sweep = (seg.value / total) * Math.PI * 2 * progress;
+      ctx.beginPath();
+      ctx.moveTo(cx, cy);
+      ctx.arc(cx, cy, r, startAngle, startAngle + sweep);
+      ctx.closePath();
+      ctx.fillStyle = seg.color;
+      ctx.fill();
+      startAngle += sweep;
+    });
+    ctx.globalCompositeOperation = 'destination-out';
+    ctx.beginPath();
+    ctx.arc(cx, cy, inner, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.globalCompositeOperation = 'source-over';
+    if (progress < 1) requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+
+  const legend = document.getElementById(legendId);
+  legend.innerHTML = segments.map(s =>
+    `<div class="chart-legend-item"><span class="chart-legend-dot" style="background:${s.color}"></span>${s.label}: ${s.value}</div>`
+  ).join('');
+}
+
+function renderCharts(result) {
+  const colorFor = c => c === 'fail' ? '#dc2626' : c === 'warn' ? '#d97706' : '#15803d';
+  const topChecks = [...result.checks].filter(c => c.weight > 0).sort((a, b) => b.weight - a.weight).slice(0, 8);
+  const barItems = (topChecks.length ? topChecks : result.checks.slice(0, 6)).map(c => ({
+    label: c.name, value: c.weight || 1, color: colorFor(c.status),
+  }));
+  drawBarChart('barChart', barItems);
+
+  const donutSegments = [
+    { label: 'Risk Score', value: result.score, color: '#dc2626' },
+    { label: 'Remaining Margin', value: Math.max(0, 100 - result.score), color: '#e2e6f0' },
+  ];
+  drawDonutChart('donutChart', donutSegments, 'donutLegend');
+}
+
 function renderResults(result) {
   const { score, confidence, riskLevel, riskColor, summary, checks, hostname, whois, tiStats, tiFindings, recs, aiText } = result;
 
@@ -933,24 +1328,21 @@ function renderResults(result) {
   document.getElementById('riskUrlEcho').textContent = hostname;
   document.getElementById('riskSummary').textContent = summary;
 
-  // Risk progress bar
   const pf = document.getElementById('riskProgressFill');
   pf.style.width = score + '%';
   pf.style.background = riskColor;
 
-  // ✨ Confidence Score display
   document.getElementById('riskScoreNum').textContent = score;
   document.getElementById('riskScoreNum').style.color = riskColor;
   document.getElementById('confidenceNum').textContent = confidence + '%';
   const cf = document.getElementById('confidenceBarFill');
   cf.style.width = confidence + '%';
-  // Colour the confidence bar: high confidence = accent, low = muted
   cf.style.background = confidence >= 80 ? 'var(--accent)' : confidence >= 60 ? 'var(--medium)' : 'var(--text-2)';
 
-  // Favicon
   renderFavicon(result);
+  renderSSL(result);
+  renderGeo(result);
 
-  // Checks
   const grid = document.getElementById('checksGrid');
   grid.innerHTML = '';
   checks.forEach(c => {
@@ -958,7 +1350,6 @@ function renderResults(result) {
     const pct = Math.round((c.weight / maxScore) * 100);
     const barColor = c.status === 'pass' ? 'var(--safe)' : c.status === 'warn' ? 'var(--medium)' : 'var(--critical)';
     const label = c.status === 'pass' ? 'PASS' : c.status === 'warn' ? 'WARN' : 'FAIL';
-    // ✅ BUG FIX: className = 'check-status ' + status  (no 'status-' prefix)
     grid.innerHTML += `
       <div class="check-card">
         <div class="check-head">
@@ -972,24 +1363,25 @@ function renderResults(result) {
       </div>`;
   });
 
-  // Threat Intel
+  renderCharts(result);
+
   const tg = document.getElementById('tiGrid');
   tg.innerHTML = tiStats.map(s => `<div class="ti-stat"><span class="val">${s.val}</span><span class="lab">${s.lab}</span></div>`).join('');
   const tf = document.getElementById('tiFindings');
-  tf.innerHTML = tiFindings.map(f => `<li class="${f.benign?'benign':''}">${f.text}</li>`).join('');
+  tf.innerHTML = tiFindings.map(f => `<li class="${f.benign ? 'benign' : ''}">${f.text}</li>`).join('');
 
-  // AI text
   document.getElementById('aiText').textContent = aiText;
-
-  // Recs
   document.getElementById('recList').innerHTML = recs.map(r => `<li>${r}</li>`).join('');
 
-  // WHOIS
   const wt = document.getElementById('whoisTable');
-  wt.innerHTML = Object.entries(whois).map(([k,v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+  wt.innerHTML = Object.entries(whois).map(([k, v]) => `<tr><td>${k}</td><td>${v}</td></tr>`).join('');
+
+  document.getElementById('exportStatus').classList.add('hidden');
 }
 
-// ---------- TERMINAL LOG ----------
+/* ---------------------------------------------------------
+   SECTION G: TERMINAL LOG + SCAN ANIMATION
+--------------------------------------------------------- */
 function termLog(msg, cls='') {
   const body = document.getElementById('terminalBody');
   const p = document.createElement('p');
@@ -997,58 +1389,177 @@ function termLog(msg, cls='') {
   p.textContent = msg;
   body.appendChild(p);
   body.scrollTop = body.scrollHeight;
-  if (body.children.length > 12) body.removeChild(body.firstChild);
+  if (body.children.length > 14) body.removeChild(body.firstChild);
 }
 
-// ---------- SCAN ANIMATION ----------
 function runScan(url, result) {
   const loading = document.getElementById('scanLoading');
   const logsEl  = document.getElementById('scanLogs');
   loading.classList.remove('hidden');
+  document.getElementById('resultsArea').classList.remove('hidden');
+  renderTimeline(-1, false);
 
   const steps = [
-    [0,   '⏳ Parsing URL structure…'],
-    [250, '🔍 Checking TLD reputation…'],
-    [500, '🔑 Scanning for phishing keywords…'],
-    [750, '🌐 Simulating WHOIS lookup…'],
-    [1000,'🖼  Running favicon identity check…'],
-    [1250,'🧠 Computing confidence score…'],
-    [1600,'✅ Analysis complete.', 'ok'],
+    [0,    '⏳ Parsing URL structure…', 0],
+    [220,  '🌐 Resolving DNS / hostname…', 1],
+    [440,  '🔑 Scanning for phishing keywords…', 2],
+    [660,  '🔍 Checking TLD reputation…', 3],
+    [880,  '🧬 Running typosquatting + entropy analysis…', 4],
+    [1100, '🖼  Running favicon identity check…', 5],
+    [1320, '📡 Cross-referencing threat intelligence…', 6],
+    [1700, '✅ Verdict computed.', 7, 'ok'],
   ];
 
-  steps.forEach(([delay, msg, cls]) => {
+  steps.forEach(([delay, msg, stageIdx, cls]) => {
     setTimeout(() => {
       const p = document.createElement('p');
-      p.className = 'log-line' + (cls ? ' '+cls : '');
-      p.style.animationDelay = '0ms';
+      p.className = 'log-line' + (cls ? ' ' + cls : '');
       p.textContent = msg;
       logsEl.appendChild(p);
       termLog(msg, cls);
+      renderTimeline(stageIdx, false);
     }, delay);
   });
 
   setTimeout(() => {
     loading.classList.add('hidden');
     logsEl.innerHTML = '';
+    renderTimeline(TIMELINE_STAGES.length, true);
     renderResults(result);
-    document.getElementById('resultsArea').classList.remove('hidden');
-    document.getElementById('resultsArea').scrollIntoView({ behavior:'smooth', block:'start' });
-  }, 1900);
+    document.getElementById('analyze').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, 2000);
 }
 
+/* ---------------------------------------------------------
+   SECTION H: EXPORT TOOLS
+--------------------------------------------------------- */
+function buildExportableReport(result) {
+  return {
+    tool: 'PhishGuard AI Pro (Educational)',
+    generatedAt: new Date().toISOString(),
+    url: result.rawUrl,
+    hostname: result.hostname,
+    riskScore: result.score,
+    confidence: result.confidence,
+    riskLevel: result.riskLevel,
+    threatCategory: result.threatCategory,
+    reputationScore: result.reputationScore,
+    communityConfidence: result.communityConfidence,
+    heuristicChecks: result.checks.map(c => ({ name: c.name, status: c.status, weight: c.weight, explanation: c.explanation })),
+    typosquat: result.typosquat ? { matchedBrand: result.typosquat.brand.name, editDistance: result.typosquat.dist, label: result.typosquat.label } : null,
+    punycode: result.isPunycode,
+    urlShortener: result.isShortener,
+    entropy: result.entropyInfo,
+    ssl: result.sslInfo,
+    geolocation: result.geoInfo,
+    whois: result.whois,
+    recommendations: result.recs,
+    aiAnalystSummary: result.aiText,
+    disclaimer: 'Educational simulation. WHOIS, SSL and geolocation data are simulated. Not a real security verdict.',
+  };
+}
+
+function showExportStatus(msg) {
+  const el = document.getElementById('exportStatus');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 3500);
+}
+
+function downloadJSONReport(result) {
+  const report = buildExportableReport(result);
+  const blob = new Blob([JSON.stringify(report, null, 2)], { type: 'application/json' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `phishguard-report-${result.hostname}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  showExportStatus('JSON report downloaded.');
+}
+
+function exportPDFReport(result) {
+  if (typeof window.jspdf === 'undefined') {
+    showExportStatus('PDF library failed to load. Check your internet connection.');
+    return;
+  }
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF();
+  const margin = 14;
+  let y = 18;
+
+  doc.setFontSize(16); doc.setFont(undefined, 'bold');
+  doc.text('PhishGuard AI Pro — Analysis Report', margin, y); y += 8;
+  doc.setFontSize(9); doc.setFont(undefined, 'normal'); doc.setTextColor(120);
+  doc.text('Educational simulation — not a real security verdict', margin, y); y += 8;
+  doc.setTextColor(0);
+
+  doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.text('Target URL:', margin, y);
+  doc.setFont(undefined, 'normal');
+  const urlLines = doc.splitTextToSize(result.rawUrl, 170);
+  doc.text(urlLines, margin + 28, y); y += urlLines.length * 5 + 4;
+
+  doc.setFont(undefined, 'bold'); doc.text(`Risk Score: ${result.score}/100`, margin, y);
+  doc.text(`Risk Level: ${result.riskLevel}`, margin + 70, y);
+  doc.text(`Confidence: ${result.confidence}%`, margin + 130, y); y += 8;
+
+  doc.setFont(undefined, 'bold'); doc.text('Threat Category:', margin, y);
+  doc.setFont(undefined, 'normal'); doc.text(result.threatCategory, margin + 38, y); y += 10;
+
+  doc.setFont(undefined, 'bold'); doc.text('Triggered Heuristics:', margin, y); y += 6;
+  doc.setFont(undefined, 'normal'); doc.setFontSize(9);
+  result.checks.filter(c => c.weight > 0).forEach(c => {
+    const lines = doc.splitTextToSize(`• [${c.status.toUpperCase()}] ${c.name} (+${c.weight}) — ${c.explanation}`, 180);
+    if (y > 270) { doc.addPage(); y = 18; }
+    doc.text(lines, margin, y); y += lines.length * 5;
+  });
+
+  y += 4; if (y > 260) { doc.addPage(); y = 18; }
+  doc.setFontSize(11); doc.setFont(undefined, 'bold'); doc.text('Recommendations:', margin, y); y += 6;
+  doc.setFontSize(9); doc.setFont(undefined, 'normal');
+  result.recs.forEach(r => {
+    const lines = doc.splitTextToSize(`• ${r}`, 180);
+    if (y > 270) { doc.addPage(); y = 18; }
+    doc.text(lines, margin, y); y += lines.length * 5;
+  });
+
+  doc.save(`phishguard-report-${result.hostname}.pdf`);
+  showExportStatus('PDF report exported.');
+}
+
+function copySummaryToClipboard(result) {
+  const text = `PhishGuard AI Pro Report
+URL: ${result.rawUrl}
+Risk Score: ${result.score}/100 (${result.riskLevel})
+Confidence: ${result.confidence}%
+Threat Category: ${result.threatCategory}
+
+${result.aiText}`;
+  navigator.clipboard.writeText(text).then(
+    () => showExportStatus('Summary copied to clipboard.'),
+    () => showExportStatus('Could not copy — your browser blocked clipboard access.')
+  );
+}
+
+/* ---------------------------------------------------------
+   SECTION I: EVENT WIRING
+--------------------------------------------------------- */
 let lastResult = null;
 
-document.getElementById('analyzeBtn').addEventListener('click', () => {
-  const url = document.getElementById('urlInput').value.trim();
+function runAnalysis(url) {
   const err = document.getElementById('inputError');
-  if (!url) { err.textContent='Please enter a URL.'; err.classList.remove('hidden'); return; }
-  try { new URL(url); } catch { err.textContent='Please enter a valid URL including http:// or https://'; err.classList.remove('hidden'); return; }
+  if (!url) { err.textContent = 'Please enter a URL.'; err.classList.remove('hidden'); return; }
+  try { new URL(url); } catch { err.textContent = 'Please enter a valid URL including http:// or https://'; err.classList.remove('hidden'); return; }
   err.classList.add('hidden');
   document.getElementById('resultsArea').classList.add('hidden');
   const result = analyzeURL(url);
-  if (!result) { err.textContent='Could not parse URL.'; err.classList.remove('hidden'); return; }
+  if (!result) { err.textContent = 'Could not parse URL.'; err.classList.remove('hidden'); return; }
   lastResult = result;
   runScan(url, result);
+}
+
+document.getElementById('analyzeBtn').addEventListener('click', () => {
+  runAnalysis(document.getElementById('urlInput').value.trim());
 });
 
 document.getElementById('clearBtn').addEventListener('click', () => {
@@ -1061,13 +1572,123 @@ document.getElementById('clearBtn').addEventListener('click', () => {
 document.querySelectorAll('.chip').forEach(chip => {
   chip.addEventListener('click', () => {
     document.getElementById('urlInput').value = chip.dataset.sample;
-    document.getElementById('analyzeBtn').click();
+    runAnalysis(chip.dataset.sample);
   });
 });
 
 document.getElementById('urlInput').addEventListener('keydown', e => {
-  if (e.key === 'Enter') document.getElementById('analyzeBtn').click();
+  if (e.key === 'Enter') runAnalysis(document.getElementById('urlInput').value.trim());
 });
+
+// Dark mode toggle
+document.getElementById('themeToggle').addEventListener('click', () => {
+  document.body.classList.toggle('dark-mode');
+  document.getElementById('themeToggle').textContent = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+});
+
+// QR code upload + decode
+// Normalizes raw QR-decoded text into a navigable URL.
+// Returns a valid URL string, or null if the decoded content isn't URL-like
+// (e.g. plain text, a WiFi config string, or a vCard).
+function normalizeDecodedQrText(text) {
+  if (!text) return null;
+
+  // Already a valid absolute URL (http/https) — use as-is.
+  try {
+    const u = new URL(text);
+    if (u.protocol === 'http:' || u.protocol === 'https:') return text;
+  } catch { /* not a valid absolute URL yet — keep checking below */ }
+
+  // Reject obviously non-URL QR payloads (WiFi configs, vCards, plain SMS/tel, etc.)
+  if (/^(WIFI:|BEGIN:VCARD|mailto:|tel:|sms:|smsto:)/i.test(text)) return null;
+  if (/\s/.test(text) && !/^https?:\/\//i.test(text)) return null; // free text with spaces, no protocol
+
+  // Looks like a bare domain/path without a protocol (e.g. "paytm-verify.tk/login") — assume https.
+  const domainLike = /^[a-z0-9.-]+\.[a-z]{2,}(\/.*)?$/i;
+  if (domainLike.test(text)) {
+    const candidate = 'https://' + text;
+    try { new URL(candidate); return candidate; } catch { return null; }
+  }
+
+  return null;
+}
+
+document.getElementById('qrUploadBtn').addEventListener('click', () => {
+  document.getElementById('qrFileInput').click();
+});
+
+document.getElementById('qrFileInput').addEventListener('change', (e) => {
+  const file = e.target.files[0];
+  const statusEl = document.getElementById('qrStatus');
+  if (!file) return;
+  e.target.value = ''; // allow re-selecting the same file on a retry
+  statusEl.classList.remove('hidden', 'ok', 'err');
+  statusEl.textContent = 'Reading QR image…';
+
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    const img = new Image();
+    img.onload = () => {
+      const canvas = document.getElementById('qrHiddenCanvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      ctx.drawImage(img, 0, 0);
+      const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+
+      if (typeof jsQR === 'undefined') {
+        statusEl.textContent = 'QR library failed to load. Check your internet connection.';
+        statusEl.classList.add('err');
+        return;
+      }
+      const code = jsQR(imageData.data, imageData.width, imageData.height);
+      if (code && code.data) {
+        const decoded = code.data.trim();
+        const normalizedUrl = normalizeDecodedQrText(decoded);
+
+        if (!normalizedUrl) {
+          // QR contained data that isn't a navigable URL (e.g. plain text, WiFi config, vCard)
+          statusEl.textContent = `QR decoded, but this isn't a URL: "${decoded.slice(0, 80)}${decoded.length > 80 ? '…' : ''}"`;
+          statusEl.classList.add('err');
+          return;
+        }
+
+        statusEl.textContent = decoded === normalizedUrl
+          ? `QR decoded: ${decoded}`
+          : `QR decoded: ${decoded} → analyzing as ${normalizedUrl}`;
+        statusEl.classList.add('ok');
+        document.getElementById('urlInput').value = normalizedUrl;
+        runAnalysis(normalizedUrl);
+      } else {
+        statusEl.textContent = 'No QR code found in this image. Try a clearer, well-lit photo with the QR code filling more of the frame.';
+        statusEl.classList.add('err');
+      }
+    };
+    img.onerror = () => {
+      statusEl.textContent = 'Could not load this image file.';
+      statusEl.classList.add('err');
+    };
+    img.src = ev.target.result;
+  };
+  reader.readAsDataURL(file);
+});
+
+// Export tool buttons
+document.getElementById('exportJsonBtn').addEventListener('click', () => {
+  if (!lastResult) { showExportStatus('Run an analysis first.'); return; }
+  downloadJSONReport(lastResult);
+});
+document.getElementById('exportPdfBtn').addEventListener('click', () => {
+  if (!lastResult) { showExportStatus('Run an analysis first.'); return; }
+  exportPDFReport(lastResult);
+});
+document.getElementById('copySummaryBtn').addEventListener('click', () => {
+  if (!lastResult) { showExportStatus('Run an analysis first.'); return; }
+  copySummaryToClipboard(lastResult);
+});
+
+// Initialize timeline shell (inactive) on first load
+renderTimeline(-1, false);
 </script>
 </body>
 </html>
