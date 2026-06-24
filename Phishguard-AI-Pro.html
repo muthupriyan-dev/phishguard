@@ -768,7 +768,7 @@ function analyzeURL(rawUrl) {
   const hasIPHost    = /^(\d{1,3}\.){3}\d{1,3}$/.test(hostname);
   const subdomainDepth = Math.max(0, domainParts.length - 2);
   const keywordHits  = phishKeywords.filter(k => fullUrl.includes(k));
-  const hasHomoglyph = /[a-z]0[a-z]|[a-z]1[a-z]|rn|vv/.test(hostname);
+  const hasHomoglyph = /[a-z]0{1,2}[a-z]|[a-z]1{1,2}[a-z]|[a-z][0-9](?=[a-z]|$|\.)|rn|vv/.test(hostname);
   const hasRedirect  = fullUrl.includes('redirect') || fullUrl.includes('url=') || fullUrl.includes('return=');
   const numSpecialChars = (hostname.match(/[-_]/g) || []).length;
   const hasBrandInSubdomain = Object.keys(BRAND_FAVICONS).some(b => {
@@ -793,7 +793,7 @@ function analyzeURL(rawUrl) {
   pushCheck('HTTPS Protocol', isHTTPS ? 'pass' : 'fail', isHTTPS ? 0 : 20, isHTTPS ? 'Connection is encrypted via HTTPS.' : 'No HTTPS — data sent in plaintext. High risk.');
   pushCheck('TLD Reputation', hasSuspTLD ? 'fail' : 'pass', hasSuspTLD ? 25 : 0, hasSuspTLD ? `".${tld}" is a free/high-abuse TLD frequently seen in phishing.` : `".${tld}" is not a known high-abuse TLD.`);
   pushCheck('IP Address Host', hasIPHost ? 'fail' : 'pass', hasIPHost ? 30 : 0, hasIPHost ? 'Domain is a raw IP — a classic phishing pattern.' : 'Domain uses a hostname, not a raw IP.');
-  
+
   const kwScore = Math.min(keywordHits.length * 8, 30);
   pushCheck('Phishing Keywords', keywordHits.length === 0 ? 'pass' : keywordHits.length <= 2 ? 'warn' : 'fail', kwScore, keywordHits.length === 0 ? 'No phishing-related keywords found.' : `Found: ${keywordHits.slice(0, 4).join(', ')}`);
 
@@ -829,8 +829,13 @@ function analyzeURL(rawUrl) {
   else if (score >= 55 || score <= 25) baseConfidence += 10;
   const confidence = Math.min(Math.max(baseConfidence, 35), 97);
 
-  const impersonated = detectImpersonatedBrand(hostname, fullUrl);
-  const isLegit = impersonated ? isLegitDomain(hostname, impersonated.key) : false;
+  // Brand impersonation: a direct substring match (e.g. "paypal" literally in the
+  // hostname/URL) OR a close typosquat match (e.g. "paypa1", "g00gle") both count
+  // as impersonation for the favicon comparison panel. Only the substring match
+  // can ever be the *real* official domain — a typosquat is, by definition, never legit.
+  const impersonatedSubstring = detectImpersonatedBrand(hostname, fullUrl);
+  const impersonated = impersonatedSubstring || (typosquat ? { key: typosquat.key, brand: typosquat.brand } : null);
+  const isLegit = impersonatedSubstring ? isLegitDomain(hostname, impersonatedSubstring.key) : false;
   const faviconData = { impersonated, isLegit, suspectDomain: hostname, canFetchSuspect: false };
 
   const sslInfo = getSSLInfo(hostname, isHTTPS, seed);
@@ -1458,7 +1463,7 @@ document.getElementById('qrFileInput').addEventListener('change', (e) => {
     canvas.width = w;
     canvas.height = h;
     ctx.drawImage(img, 0, 0, w, h);
-    
+
     try {
       const imageData = ctx.getImageData(0, 0, w, h);
       if (typeof jsQR === 'undefined') {
@@ -1474,7 +1479,7 @@ document.getElementById('qrFileInput').addEventListener('change', (e) => {
         statusEl.classList.add('err');
       }
     } catch (err) {
-      statusEl.textContent = 'Error context matching scanning operations.';
+      statusEl.textContent = 'Error reading the QR image. Please try a different photo.';
       statusEl.classList.add('err');
     }
   };
