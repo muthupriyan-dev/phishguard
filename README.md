@@ -52,5 +52,4 @@ This project was created to practice:
 
 GitHub: https://github.com/muthupriyan-dev
 
-## 📄 License
-This project is open source and available under the MIT License.
+
